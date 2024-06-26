@@ -1,0 +1,8 @@
+{
+    "[typescript]": {
+        "editor.formatOnSave": true
+    },
+    "[solidity]": {
+        "editor.formatOnSave": true
+    }
+}
