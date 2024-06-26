@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-error NoRaceFound(string race);
+error RaceAlreadyExisting(string race);
 
 /**
  * @title Every animal in the zoo is a "Animal" NFT.
@@ -42,12 +42,12 @@ contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable {
     //     _safeMint(to, tokenId);
     // }
 
-    function createNewRace(
-        string calldata _id,
-        uint _maxChildrenCount,
-        string calldata _metadataUri
-    ) external onlyOwner {
-        Race memory newRace = Race({id: _id, maxChildrenCount: _maxChildrenCount, metadataUri: _metadataUri});
+    function createNewRace(string calldata _raceId, uint _maxChildrenCount, string calldata _metadataUri) external onlyOwner {
+        if (!eq(getRaceById(_raceId).id, "")) {
+            revert RaceAlreadyExisting(_raceId);
+        }
+
+        Race memory newRace = Race({id: _raceId, maxChildrenCount: _maxChildrenCount, metadataUri: _metadataUri});
 
         races.push(newRace);
         emit RaceCreated(newRace);
@@ -61,28 +61,33 @@ contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable {
         animalForTokenId[tokenId] = Animal({race: race, childCount: 0});
     }
 
+    /**
+     * @notice Get a race by its "id"
+     * @param _raceId Id of the race to get
+     * @return race the "race" matching the race id, otherwise an empty race
+     */
     function getRaceById(string calldata _raceId) internal view returns (Race memory race) {
         for (uint i = 0; i < races.length; i++) {
-            if (compareStrings(races[i].id, _raceId)) {
+            if (eq(races[i].id, _raceId)) {
                 return races[i];
             }
         }
-
-        revert NoRaceFound(_raceId);
     }
 
-    function compareStrings(string memory a, string memory b) internal pure returns (bool) {
+    /**
+     * @notice Compare two strings
+     * @param a the first string
+     * @param b the second string
+     * @return `true` if the strings are the same, otherwise `false`
+     */
+    function eq(string memory a, string memory b) internal pure returns (bool) {
         return (keccak256(abi.encodePacked((a))) == keccak256(abi.encodePacked((b))));
     }
 
     // -------------------------------------------------------------------------------
     // The following functions are overrides required by Solidity.
 
-    function _update(
-        address to,
-        uint256 tokenId,
-        address auth
-    ) internal override(ERC721, ERC721Enumerable) returns (address) {
+    function _update(address to, uint256 tokenId, address auth) internal override(ERC721, ERC721Enumerable) returns (address) {
         return super._update(to, tokenId, auth);
     }
 

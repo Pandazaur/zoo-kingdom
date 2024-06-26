@@ -7,20 +7,7 @@ const config = {
     semi: false,
     tabWidth: 4,
     singleQuote: true,
-    printWidth: 920,
-    overrides: [
-        {
-            files: '*.sol',
-            options: {
-                parser: 'solidity-parse',
-                printWidth: 80,
-                tabWidth: 8,
-                useTabs: false,
-                singleQuote: false,
-                bracketSpacing: false,
-            },
-        },
-    ],
+    printWidth: 120,
 }
 
 export default config
