@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 error RaceAlreadyExisting(string race);
 
@@ -30,7 +31,7 @@ contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable {
 
     uint256 private _nextTokenId;
     mapping(uint => Animal) public animalForTokenId;
-    Race[] public races;
+    Race[] private races;
 
     event RaceCreated(Race race);
     event AnimalCreated(Animal animal);
@@ -55,6 +56,8 @@ contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable {
 
     function safeMintAnimal(string calldata _raceId) external {
         Race memory race = getRaceById(_raceId);
+        require(!Strings.equal(getRaceById(_raceId).id, ""), "Undefined race");
+
         uint256 tokenId = _nextTokenId++;
 
         _safeMint(msg.sender, tokenId);
@@ -72,6 +75,10 @@ contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable {
                 return races[i];
             }
         }
+    }
+
+    function getRaces() external view returns (Race[] memory) {
+       return races;
     }
 
     /**

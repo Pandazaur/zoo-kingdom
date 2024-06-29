@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { Dialog, DialogPanel } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import { grandstander } from '@/lib/fonts'
@@ -10,7 +11,7 @@ import Providers from '@/components/Providers'
 const navigation = [
     { name: 'Marketplace', href: '#' },
     { name: 'Mes NFTs', href: '#' },
-    { name: 'Obtenir des animaux', href: '#' },
+    { name: 'Obtenir des animaux', href: '/app/animals' },
     { name: 'Mon zoo', href: '#' },
 ]
 
@@ -19,9 +20,10 @@ export default function Example() {
 
     return (
         <header className="bg-amber-300">
-            <nav className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8" aria-label="Global">
+            <nav className="mx-auto flex max-w-7xl items-center justify-between p-4 lg:px-8" aria-label="Global">
                 <div className="flex items-center gap-x-12">
-                    <a href="#" className="-m-1.5 p-1.5">
+                    <a href="#" className="-m-1.5 p-1.5 inline-flex gap-6 items-center">
+                        <Image src={'/images/zoo-kingdom-logo.png'} width={80} height={50} alt="Zoo Kingdom Logo" />
                         <h1 className={`${grandstander.className} text-2xl font-bold`}>Zoo Kingdom</h1>
                     </a>
                     <div className="hidden lg:flex lg:gap-x-12">

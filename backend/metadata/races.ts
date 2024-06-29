@@ -57,7 +57,7 @@ const RACES: Race[] = [
         metadata: {
             name: 'Cygne',
             description: `Un majestueux oiseau aquatique au plumage immaculé, le cygne se distingue par sa silhouette élégante et sa grâce aérienne. Son long cou gracieux, sa tête fine et son bec orange vif lui confèrent une allure noble. Nageur hors pair, il glisse paisiblement sur les lacs et les rivières, nourrissant sa famille et défendant son territoire avec ferveur.`,
-            imagePath: resolve(__dirname, './pictures/crocodile.jpg'),
+            imagePath: resolve(__dirname, './pictures/swan.jpg'),
         },
     },
 ]
