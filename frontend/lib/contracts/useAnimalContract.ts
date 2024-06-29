@@ -6,9 +6,11 @@ export const contractMainInfos = {
     address: process.env.NEXT_PUBLIC_ANIMAL_CONTRACT_ADDRESS,
 }
 
-export function useReadAnimalContract(functionName: string) {
+export function useReadAnimalContract(functionName: string, args?: unknown[]) {
+    console.log({ abi })
     return useReadContract({
         ...contractMainInfos,
         functionName,
+        args,
     })
 }
