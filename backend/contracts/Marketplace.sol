@@ -5,6 +5,8 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
+error NotBought();
+
 contract Marketplace is IERC721Receiver {
     struct Bid {
         uint animalId;
@@ -62,49 +64,45 @@ contract Marketplace is IERC721Receiver {
      * @dev Attention à la reeentrency
      */
     function buy(uint _animalId) external payable bidMustExistsForAnimalId(_animalId) {
-        require(msg.value == getBidForAnimalId(_animalId).price, "Sent a different amount of ethers than the animal price");
-
         Bid memory bid = getBidForAnimalId(_animalId);
+
+        require(bid.owner != msg.sender, "Cannot buy your own bid");
+        require(msg.value == bid.price, "Sent a different amount of ethers than the animal price");
+
         animalNftContract.safeTransferFrom(address(this), msg.sender, bid.animalId);
+
+        (bool success, ) = payable(bid.owner).call{value: msg.value}("");
+
+        require(success, "Could not pay the bid");
+
         removeBid(bid);
-        emit RemoveFromSale(bid);
+        emit Bought(bid, msg.sender);
     }
 
     function removeBid(Bid memory _bid) internal {
-        // Bid[] storage newBids;
-        bool activateReordering;
+        bool hasDeletedBid;
 
         for (uint i = 0; i < bids.length; i++) {
-            if (bids[i].animalId != _bid.animalId) {
-                delete bids[i];
-                activateReordering = true;
+            if (hasDeletedBid) {
+                bids[i-1] = bids[i];
             }
 
-            if (activateReordering) {
-                if (bids[i + 1].animalId != 0) {
-                    bids[i] = bids[i + 1];
-                }
+            if (bids[i].animalId == _bid.animalId) {
+                delete bids[i];
+                hasDeletedBid = true;
             }
         }
 
-        // bids = newBids;
+        if (hasDeletedBid) {
+            bids.pop();
+        }
     }
-
-    // function removeItemByIndex(uint[] memory arr, uint index) public {
-    //     require(index < arr.length, "Index out of bounds");
-
-    //     for (uint i = index; i < arr.length - 1; i++) {
-    //         arr[i] = arr[i + 1];
-    //     }
-
-    //     arr.pop();
-    // }
 
     function getBids() external view returns (Bid[] memory) {
         return bids;
     }
 
-    function getBidForAnimalId(uint _animalId) internal view returns (Bid memory bid) {
+    function getBidForAnimalId(uint _animalId) public view returns (Bid memory bid) {
         for (uint i = 0; i < bids.length; i++) {
             if (bids[i].animalId == _animalId) {
                 return bids[i];

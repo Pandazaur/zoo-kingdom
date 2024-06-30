@@ -2,57 +2,13 @@ import { expect } from 'chai'
 import hre from 'hardhat'
 import RACES from '../metadata/races'
 import { loadFixture } from '@nomicfoundation/hardhat-toolbox/network-helpers'
-import { parseEther } from 'ethers'
+import {
+    deployMarketplace,
+    deployMarketplaceWithAnAnimalMinted,
+    deployMarketplaceWithAnimalOnSale
+} from './fixtures/marketplace.fixtures'
 
 describe('Marketplace', function () {
-    async function deployAnimalContract() {
-        const [owner, otherAccount] = await hre.ethers.getSigners()
-
-        const animalContract = await hre.ethers.deployContract('AnimalNFT')
-
-        await animalContract.waitForDeployment()
-
-        for (const race of RACES) {
-            await animalContract.createNewRace(race.id, BigInt(race.maxChildrenCount), `ipfs://${race.id}`)
-
-            // Odd tokenId = Owner, Event tokenId = OtherAccount
-            await animalContract.safeMintAnimal(race.id)
-            await animalContract.connect(otherAccount).safeMintAnimal(race.id)
-        }
-
-        return { owner, otherAccount, animalContract }
-    }
-
-    async function deployMarketplace() {
-        const { owner, otherAccount, animalContract } = await loadFixture(deployAnimalContract)
-
-        const marketplaceContract = await hre.ethers.deployContract('Marketplace', [await animalContract.getAddress()])
-
-        return {
-            owner,
-            otherAccount,
-            animalContract,
-            marketplaceContract
-        }
-    }
-
-    async function deployMarketplaceWithAnAnimalMinted() {
-        const { owner, otherAccount, animalContract } = await loadFixture(deployAnimalContract)
-
-        const marketplaceContract = await hre.ethers.deployContract('Marketplace', [await animalContract.getAddress()])
-
-        await animalContract.safeMintAnimal(RACES[0].id)
-        const lastTokenId = await animalContract.getLastTokenId()
-
-        return {
-            owner,
-            otherAccount,
-            animalContract,
-            marketplaceContract,
-            lastTokenId
-        }
-    }
-
     describe('Deployment', () => {
         it('should be deployed', async () => {
             const { animalContract } = await loadFixture(deployMarketplace)
@@ -119,39 +75,6 @@ describe('Marketplace', function () {
     })
 
     describe('Remove from sale', () => {
-        async function deployMarketplaceWithAnimalOnSale() {
-            const { owner, otherAccount, animalContract } = await loadFixture(deployAnimalContract)
-
-            const marketplaceContract = await hre.ethers.deployContract('Marketplace', [
-                await animalContract.getAddress()
-            ])
-
-            const markerplaceAddress = await marketplaceContract.getAddress()
-
-            await animalContract.safeMintAnimal(RACES[0].id)
-            const tokenId = await animalContract.getLastTokenId()
-            await animalContract.setApprovalForAll(markerplaceAddress, true)
-            await marketplaceContract.putOnSale(tokenId, parseEther('0.1'))
-
-            await animalContract.connect(otherAccount).safeMintAnimal(RACES[0].id)
-            const otherAccountTokenId = await animalContract.connect(otherAccount).getLastTokenId()
-            await animalContract.connect(otherAccount).setApprovalForAll(markerplaceAddress, true)
-            await marketplaceContract.connect(otherAccount).putOnSale(otherAccountTokenId, parseEther('0.2'))
-
-            const bids = await marketplaceContract.getBids()
-
-            return {
-                owner,
-                otherAccount,
-                animalContract,
-                marketplaceContract,
-                tokenId,
-                otherAccountTokenId,
-                bid: bids.toReversed()[1],
-                otherAccountBid: bids.toReversed()[0]
-            }
-        }
-
         it('should NOT be able to remove an inexisting bid', async () => {
             const { marketplaceContract, otherAccountTokenId, tokenId } = await loadFixture(
                 deployMarketplaceWithAnimalOnSale
@@ -182,8 +105,68 @@ describe('Marketplace', function () {
             const bidsAfterRemoved = await marketplaceContract.getBids()
 
             expect(removeFromSalePromise).to.emit(marketplaceContract, 'RemoveFromSale').withArgs([bidToBeRemoved])
-            expect(animalContract.ownerOf(tokenId)).to.eq(bidToBeRemoved?.owner)
+            expect(await animalContract.ownerOf(tokenId)).to.eq(bidToBeRemoved?.owner)
             expect(bidsAfterRemoved.some((bid) => bid.animalId === tokenId)).to.eq(false)
+        })
+    })
+
+    describe('Buy', () => {
+        it('should NOT be able to buy my own bid', async () => {
+            const { marketplaceContract, tokenId } = await loadFixture(deployMarketplaceWithAnimalOnSale)
+
+            await expect(marketplaceContract.buy(tokenId)).to.be.revertedWith('Cannot buy your own bid')
+        })
+
+        it('should NOT be able to buy with too MUCH ethers', async () => {
+            const {
+                marketplaceContract,
+                tokenId,
+                otherAccount: buyerAccount
+            } = await loadFixture(deployMarketplaceWithAnimalOnSale)
+
+            const bid = await marketplaceContract.getBidForAnimalId(tokenId)
+
+            await expect(
+                marketplaceContract.connect(buyerAccount).buy(tokenId, { value: bid.price + 1n })
+            ).to.be.revertedWith('Sent a different amount of ethers than the animal price')
+        })
+
+        it('should NOT be able to buy with too FEW ethers', async () => {
+            const {
+                marketplaceContract,
+                tokenId,
+                otherAccount: buyerAccount
+            } = await loadFixture(deployMarketplaceWithAnimalOnSale)
+
+            await expect(marketplaceContract.connect(buyerAccount).buy(tokenId, { value: 0 })).to.be.revertedWith(
+                'Sent a different amount of ethers than the animal price'
+            )
+        })
+
+        it('should be able to buy the NFT (buyer get the NFT, seller the ethers)', async () => {
+            const {
+                marketplaceContract,
+                animalContract,
+                tokenId,
+                owner,
+                otherAccount: buyerAccount
+            } = await loadFixture(deployMarketplaceWithAnimalOnSale)
+
+            const bid = await marketplaceContract.getBidForAnimalId(tokenId)
+            const ownerOfNftBeforeBuy = await animalContract.ownerOf(tokenId)
+
+            const buyPromise = marketplaceContract.connect(buyerAccount).buy(tokenId, { value: bid.price })
+            expect(buyPromise).to.emit(marketplaceContract, 'Bought').withArgs([bid, buyerAccount.address])
+
+            await buyPromise
+
+            const ownerOfNftAfterBuy = await animalContract.ownerOf(tokenId)
+
+            expect(ownerOfNftBeforeBuy).to.eq(await marketplaceContract.getAddress())
+            expect(ownerOfNftAfterBuy).to.eq(await buyerAccount.address)
+            await expect(buyPromise).to.changeEtherBalances([owner, buyerAccount], [bid.price, -bid.price], {
+                includingFee: true
+            })
         })
     })
 })
