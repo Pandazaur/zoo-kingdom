@@ -10,6 +10,7 @@ import { RaceMetadata } from '@/types/Race.type'
 import { grandstander } from '@/lib/fonts'
 
 import { Gender, formatGender } from '@/lib/animal'
+import ModalSellAnimal from './ModalSellAnimal'
 
 type Props = {
     animal: {
@@ -47,7 +48,9 @@ export default function AnimalCard(props: Props) {
                 </ul>
             </div>
             <div className="flex items-center gap-4">
-                <Button className="flex-1">Sell</Button>
+                <div className="flex-1">
+                    <ModalSellAnimal race={raceMetadata} />
+                </div>
                 <Button className="flex-1" disabled>
                     Transfer
                 </Button>
