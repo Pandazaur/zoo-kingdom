@@ -18,6 +18,8 @@ error RaceAlreadyExisting(string race);
  *      ERC721Burnable: to allow burning some animals (no animal injured)
  */
 contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable {
+    enum Gender { MALE, FEMALE }
+
     struct Race {
         string id;
         uint maxChildrenCount;
@@ -27,6 +29,7 @@ contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable {
     struct Animal {
         Race race;
         uint childCount;
+        Gender gender;
     }
 
     uint256 private _nextTokenId;
@@ -54,14 +57,16 @@ contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable {
         emit RaceCreated(newRace);
     }
 
+    // @dev We should use a Chainlink VRF Random generator for the gender
     function safeMintAnimal(string calldata _raceId) external {
         Race memory race = getRaceById(_raceId);
         require(!Strings.equal(getRaceById(_raceId).id, ""), "Undefined race");
 
         uint256 tokenId = _nextTokenId++;
 
+        Gender animalGender = uint(keccak256(abi.encodePacked(_raceId, block.timestamp, block.number, tokenId))) % 2 == 0 ? Gender.MALE : Gender.FEMALE;
         _safeMint(msg.sender, tokenId);
-        animalForTokenId[tokenId] = Animal({race: race, childCount: 0});
+        animalForTokenId[tokenId] = Animal({race: race, childCount: 0, gender: animalGender});
         emit AnimalCreated(animalForTokenId[tokenId], tokenId);
     }
 

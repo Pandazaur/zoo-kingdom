@@ -9,7 +9,7 @@ import { convertIpfsToHttps } from '@/lib/strings'
 import { RaceMetadata } from '@/types/Race.type'
 import { grandstander } from '@/lib/fonts'
 
-import { contractMainInfos } from '@/lib/contracts/useAnimalContract'
+import { Gender, formatGender } from '@/lib/animal'
 
 type Props = {
     animal: {
@@ -19,6 +19,7 @@ type Props = {
             metadataUri: string
         }
         childCount: BigInt
+        gender: Gender
     }
 }
 
@@ -42,6 +43,7 @@ export default function AnimalCard(props: Props) {
                         Child count: {props.animal.childCount.toLocaleString()} /{' '}
                         {props.animal.race.maxChildrenCount.toLocaleString()}
                     </li>
+                    <li>Gender: {formatGender(props.animal.gender)}</li>
                 </ul>
             </div>
             <div className="flex items-center gap-4">
