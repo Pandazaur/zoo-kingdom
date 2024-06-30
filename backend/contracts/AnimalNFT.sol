@@ -95,6 +95,10 @@ contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable {
         return races;
     }
 
+    function getLastTokenId() external view returns (uint) {
+        return _nextTokenId - 1;
+    }
+
     /**
      * @notice Compare two strings
      * @param a the first string

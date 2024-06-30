@@ -7,41 +7,38 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 async function main() {
-    const [owner] = await hre.viem.getWalletClients()
-    const animalContract = await hre.viem.deployContract('AnimalNFT', [
-        owner.account.address,
-    ])
+    const [owner] = await hre.ethers.getSigners()
+    const animalContract = await hre.ethers.deployContract('AnimalNFT')
 
-    console.log(`Animal contract deployed to ${animalContract.address}`)
+    await animalContract.waitForDeployment()
 
-    const pinata = new PinataSDK(
-        process.env.PINATA_API_KEY,
-        process.env.PINATA_API_SECRET,
-    )
+    console.log(`Animal contract deployed to ${await animalContract.getAddress()}`)
+
+    const pinata = new PinataSDK(process.env.PINATA_API_KEY, process.env.PINATA_API_SECRET)
 
     RACES.forEach(async (race) => {
         const uploadPictureOptions = {
             pinataMetadata: {
-                name: `image_${race.id}`,
+                name: `image_${race.id}`
             },
             pinataOptions: {
-                cidVersion: 1,
-            },
+                cidVersion: 1
+            }
         } as const
 
         const uploadMetadataOptions = {
             pinataMetadata: {
-                name: `metadata_${race.id}`,
+                name: `metadata_${race.id}`
             },
             pinataOptions: {
-                cidVersion: 1,
-            },
+                cidVersion: 1
+            }
         } as const
 
         console.log(`[${race.id}] Uploading picture on IPFS...`)
         const { IpfsHash: ipfsHashPicture } = await pinata.pinFileToIPFS(
             fs.createReadStream(race.metadata.imagePath),
-            uploadPictureOptions,
+            uploadPictureOptions
         )
 
         console.log(`[${race.id}] Uploading metadata on IPFS...`)
@@ -49,17 +46,13 @@ async function main() {
             {
                 ...race.metadata,
                 imagePath: undefined,
-                image: `ipfs://${ipfsHashPicture}`,
+                image: `ipfs://${ipfsHashPicture}`
             },
-            uploadMetadataOptions,
+            uploadMetadataOptions
         )
 
         console.log(`[${race.id}] Creating the race...`)
-        await animalContract.write.createNewRace([
-            race.id,
-            BigInt(race.maxChildrenCount),
-            `ipfs://${ipfsMetadata}`,
-        ])
+        await animalContract.createNewRace(race.id, BigInt(race.maxChildrenCount), `ipfs://${ipfsMetadata}`)
     })
 }
 

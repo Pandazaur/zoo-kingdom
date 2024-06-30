@@ -14,9 +14,11 @@
     {
       "files": "*.ts",
       "options": {
+        "printWidth": 120,
         "semi": false,
         "tabWidth": 4,
-        "singleQuote": true
+        "singleQuote": true,
+        "trailingComma": "none"
       }
     }
   ]

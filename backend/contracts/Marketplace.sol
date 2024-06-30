@@ -3,8 +3,9 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
-contract Marketplace {
+contract Marketplace is IERC721Receiver {
     struct Bid {
         uint animalId;
         uint price;
@@ -38,7 +39,6 @@ contract Marketplace {
      * @param _price Wei amount to buy the token
      */
     function putOnSale(uint _animalId, uint _price) external mustBeOwnerOf(_animalId) {
-        require(getBidForAnimalId(_animalId).animalId == 0, "Bid for this token already existing");
         require(_price > 0, "Price must be greater than 0.");
 
         animalNftContract.safeTransferFrom(msg.sender, address(this), _animalId);
@@ -49,7 +49,9 @@ contract Marketplace {
         emit OnSale(bid, msg.sender);
     }
 
-    function removeFromSale(uint _animalId) public mustBeOwnerOf(_animalId) bidMustExistsForAnimalId(_animalId) {
+    function removeFromSale(uint _animalId) public bidMustExistsForAnimalId(_animalId) {
+        require(getBidForAnimalId(_animalId).owner == msg.sender, "Not the owner of the bid");
+
         Bid memory bid = getBidForAnimalId(_animalId);
         animalNftContract.safeTransferFrom(address(this), bid.owner, bid.animalId);
         removeBid(bid);
@@ -98,11 +100,19 @@ contract Marketplace {
     //     arr.pop();
     // }
 
+    function getBids() external view returns (Bid[] memory) {
+        return bids;
+    }
+
     function getBidForAnimalId(uint _animalId) internal view returns (Bid memory bid) {
         for (uint i = 0; i < bids.length; i++) {
             if (bids[i].animalId == _animalId) {
                 return bids[i];
             }
         }
+    }
+
+    function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data) external override returns (bytes4) {
+        return IERC721Receiver.onERC721Received.selector;
     }
 }
