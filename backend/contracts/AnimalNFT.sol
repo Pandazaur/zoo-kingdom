@@ -36,7 +36,7 @@ contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable {
     event RaceCreated(Race race);
     event AnimalCreated(Animal animal, uint tokenId);
 
-    constructor(address initialOwner) ERC721("Animal", "kANIMAL") Ownable(initialOwner) {}
+    constructor() ERC721("Animal", "kANIMAL") Ownable(msg.sender) {}
 
     // function safeMint(address to) public onlyOwner {
     //     uint256 tokenId = _nextTokenId++;
@@ -92,7 +92,7 @@ contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable {
     }
 
     function getRaces() external view returns (Race[] memory) {
-       return races;
+        return races;
     }
 
     /**
