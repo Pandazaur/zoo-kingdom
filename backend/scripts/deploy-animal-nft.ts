@@ -13,7 +13,9 @@ async function main() {
     await animalContract.waitForDeployment()
 
     console.log(`Animal contract deployed to ${await animalContract.getAddress()}`)
+    const marketplaceContract = await hre.ethers.deployContract('Marketplace', [await animalContract.getAddress()])
 
+    console.log(`Marketplace contract deployed to ${await marketplaceContract.getAddress()}`)
     const pinata = new PinataSDK(process.env.PINATA_API_KEY, process.env.PINATA_API_SECRET)
 
     RACES.forEach(async (race) => {
@@ -53,6 +55,8 @@ async function main() {
 
         console.log(`[${race.id}] Creating the race...`)
         await animalContract.createNewRace(race.id, BigInt(race.maxChildrenCount), `ipfs://${ipfsMetadata}`)
+        await animalContract.safeMintAnimal(race.id)
+        await animalContract.safeMintAnimal(race.id)
     })
 }
 

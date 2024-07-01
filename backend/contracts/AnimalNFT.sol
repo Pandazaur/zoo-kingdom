@@ -18,7 +18,10 @@ error RaceAlreadyExisting(string race);
  *      ERC721Burnable: to allow burning some animals (no animal injured)
  */
 contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable {
-    enum Gender { MALE, FEMALE }
+    enum Gender {
+        MALE,
+        FEMALE
+    }
 
     struct Race {
         string id;
@@ -27,6 +30,7 @@ contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable {
     }
 
     struct Animal {
+        uint tokenId;
         Race race;
         uint childCount;
         Gender gender;
@@ -66,7 +70,7 @@ contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable {
 
         Gender animalGender = uint(keccak256(abi.encodePacked(_raceId, block.timestamp, block.number, tokenId))) % 2 == 0 ? Gender.MALE : Gender.FEMALE;
         _safeMint(msg.sender, tokenId);
-        animalForTokenId[tokenId] = Animal({race: race, childCount: 0, gender: animalGender});
+        animalForTokenId[tokenId] = Animal({tokenId: tokenId, race: race, childCount: 0, gender: animalGender});
         emit AnimalCreated(animalForTokenId[tokenId], tokenId);
     }
 

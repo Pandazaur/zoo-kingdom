@@ -1,4 +1,6 @@
-import React from 'react'
+'use client'
+
+import React, { useRef, useState } from 'react'
 import {
     Dialog,
     DialogContent,
@@ -8,23 +10,74 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { useReadContract } from 'wagmi'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { useWriteContract } from 'wagmi'
 import Image from 'next/image'
 import { convertIpfsToHttps } from '@/lib/strings'
+import { abi } from '@/../backend/artifacts/contracts/Marketplace.sol/Marketplace.json'
+import { abi as animalAbi } from '@/../backend/artifacts/contracts/AnimalNFT.sol/AnimalNFT.json'
+import { parseEther } from 'viem'
+import { useReadAnimalContract, contractMainInfos as mainAnimalContractInfos } from '@/lib/contracts/useAnimalContract'
 
 type Props = {
-    race: {
+    tokenId: BigInt
+    race?: {
         image?: string
     }
+    onPutOnSale?: () => unknown
 }
 
 export default function ModalSellAnimal(props: Props) {
-    const {} = useReadContract({})
+    const [open, setOpen] = useState(false)
+
+    const { data: approvedAddress, refetch: refetchTokenApproval } = useReadAnimalContract('getApproved', [
+        props.tokenId,
+    ])
+
+    const { writeContract: approveNft, isPending: isPendingApprove } = useWriteContract({
+        mutation: {
+            onSuccess: () => {
+                console.log('Refetch approval')
+                refetchTokenApproval()
+            },
+        },
+    })
+
+    const { writeContract, isPending } = useWriteContract({
+        mutation: {
+            onSuccess: () => {
+                setOpen(false)
+                props.onPutOnSale?.()
+            },
+            onError: (e) => {
+                console.error({ e })
+            },
+        },
+    })
+
+    const [amount, setAmount] = useState('')
+
+    console.log({ approvedAddress })
+    const isNftApprovedForMarketplace = approvedAddress === process.env.NEXT_PUBLIC_MARKETPLACE_ADDRESS
+
+    const onApprove = () => {
+        approveNft({
+            ...mainAnimalContractInfos,
+            functionName: 'approve',
+            args: [process.env.NEXT_PUBLIC_MARKETPLACE_ADDRESS, props.tokenId],
+        })
+    }
+
+    const onSell = () => {
+        writeContract({
+            abi,
+            address: process.env.NEXT_PUBLIC_MARKETPLACE_ADDRESS,
+            functionName: 'putOnSale',
+            args: [props.tokenId, parseEther(amount)],
+        })
+    }
 
     return (
-        <Dialog>
+        <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger className="w-full">
                 <Button className="w-full">Sell</Button>
             </DialogTrigger>
@@ -54,7 +107,8 @@ export default function ModalSellAnimal(props: Props) {
                                     type="number"
                                     className="flex-1 block w-full rounded-md border-0 py-1.5 pl-7 pr-12 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                                     placeholder="0.01"
-                                    aria-describedby="price-currency"
+                                    value={amount}
+                                    onInput={(e) => setAmount((e.target as HTMLInputElement).value)}
                                 />
                                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                                     <span className="text-gray-500 sm:text-sm" id="price-currency">
@@ -62,7 +116,22 @@ export default function ModalSellAnimal(props: Props) {
                                     </span>
                                 </div>
                             </div>
-                            <Button className="mt-4 w-full">Sell</Button>
+                            <Button
+                                className="mt-4 w-full"
+                                onClick={onApprove}
+                                isPending={isPendingApprove}
+                                disabled={isNftApprovedForMarketplace}
+                            >
+                                Approve NFT
+                            </Button>
+                            <Button
+                                className="mt-4 w-full"
+                                onClick={onSell}
+                                isPending={isPending}
+                                disabled={!isNftApprovedForMarketplace || !amount}
+                            >
+                                Sell
+                            </Button>
                         </div>
                     </DialogDescription>
                 </DialogHeader>

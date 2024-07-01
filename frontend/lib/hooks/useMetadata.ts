@@ -8,7 +8,6 @@ export default function useMetadata<Metadata = unknown>(metadataUri: string) {
     return useQuery<Metadata>({
         queryKey: ['METADATA_URI', metadataFetchableUri],
         queryFn: async () => {
-            console.log('get ', metadataFetchableUri)
             const metadata = await axios.get(metadataFetchableUri)
             return metadata.data
         },

@@ -14,6 +14,7 @@ import ModalSellAnimal from './ModalSellAnimal'
 
 type Props = {
     animal: {
+        tokenId: BigInt
         race: {
             id: string
             maxChildrenCount: BigInt
@@ -49,7 +50,7 @@ export default function AnimalCard(props: Props) {
             </div>
             <div className="flex items-center gap-4">
                 <div className="flex-1">
-                    <ModalSellAnimal race={raceMetadata} />
+                    <ModalSellAnimal tokenId={props.animal.tokenId} race={raceMetadata} />
                 </div>
                 <Button className="flex-1" disabled>
                     Transfer

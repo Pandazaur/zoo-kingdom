@@ -7,7 +7,6 @@ export const contractMainInfos = {
 }
 
 export function useReadAnimalContract(functionName: string, args?: unknown[]) {
-    console.log({ abi })
     return useReadContract({
         ...contractMainInfos,
         functionName,
