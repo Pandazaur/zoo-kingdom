@@ -37,7 +37,7 @@ contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable {
     }
 
     uint256 private _nextTokenId;
-    mapping(uint => Animal) public animalForTokenId;
+    mapping(uint => Animal) private animalForTokenId;
     Race[] private races;
 
     event RaceCreated(Race race);
@@ -66,7 +66,7 @@ contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable {
         Race memory race = getRaceById(_raceId);
         require(!Strings.equal(getRaceById(_raceId).id, ""), "Undefined race");
 
-        uint256 tokenId = _nextTokenId++;
+        uint256 tokenId = ++_nextTokenId;
 
         Gender animalGender = uint(keccak256(abi.encodePacked(_raceId, block.timestamp, block.number, tokenId))) % 2 == 0 ? Gender.MALE : Gender.FEMALE;
         _safeMint(msg.sender, tokenId);
@@ -102,6 +102,10 @@ contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable {
 
     function getRaces() external view returns (Race[] memory) {
         return races;
+    }
+
+    function getAnimal(uint tokenId) external view returns (Animal memory) {
+        return animalForTokenId[tokenId];
     }
 
     function getLastTokenId() external view returns (uint) {

@@ -56,7 +56,6 @@ export default function ModalSellAnimal(props: Props) {
 
     const [amount, setAmount] = useState('')
 
-    console.log({ approvedAddress })
     const isNftApprovedForMarketplace = approvedAddress === process.env.NEXT_PUBLIC_MARKETPLACE_ADDRESS
 
     const onApprove = () => {

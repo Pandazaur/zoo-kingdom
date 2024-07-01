@@ -9,7 +9,7 @@ import { ConnectButton } from '@rainbow-me/rainbowkit'
 import Providers from '@/components/Providers'
 
 const navigation = [
-    { name: 'Marketplace', href: '#' },
+    { name: 'Marketplace', href: '/app/marketplace' },
     { name: 'Mes NFTs', href: '/app/my-nfts' },
     { name: 'Obtenir des animaux', href: '/app/animals' },
     { name: 'Mon zoo', href: '#' },
