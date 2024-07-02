@@ -14,9 +14,17 @@ contract Marketplace is IERC721Receiver {
         address owner;
     }
 
+    enum MarketplaceAction {
+        SELL,
+        REMOVE,
+        BUY
+    }
+
     event OnSale(Bid bid, address seller);
     event RemoveFromSale(Bid bid);
     event Bought(Bid bid, address buyer);
+
+    event MarketplaceChange(MarketplaceAction action, Bid bid, address sender, uint date); 
 
     ERC721 private animalNftContract;
     Bid[] private bids;
@@ -49,6 +57,7 @@ contract Marketplace is IERC721Receiver {
         bids.push(bid);
 
         emit OnSale(bid, msg.sender);
+        emit MarketplaceChange(MarketplaceAction.SELL, bid, msg.sender, block.timestamp);
     }
 
     function removeFromSale(uint _animalId) public bidMustExistsForAnimalId(_animalId) {
@@ -58,6 +67,7 @@ contract Marketplace is IERC721Receiver {
         animalNftContract.safeTransferFrom(address(this), bid.owner, bid.animalId);
         removeBid(bid);
         emit RemoveFromSale(bid);
+        emit MarketplaceChange(MarketplaceAction.REMOVE, bid, msg.sender, block.timestamp);
     }
 
     /**
@@ -77,6 +87,7 @@ contract Marketplace is IERC721Receiver {
 
         removeBid(bid);
         emit Bought(bid, msg.sender);
+        emit MarketplaceChange(MarketplaceAction.BUY, bid, msg.sender, block.timestamp);
     }
 
     function removeBid(Bid memory _bid) internal {

@@ -20,7 +20,6 @@ type Props = {
 }
 
 export default function AnimalInfos(props: Props) {
-    console.log({ animal: props.animal })
     const { data: raceMetadata } = useMetadata<RaceMetadata>(props.animal.race.metadataUri)
 
     return (

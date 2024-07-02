@@ -3,11 +3,13 @@ import * as fs from 'fs'
 import RACES from '../metadata/races'
 import PinataSDK from '@pinata/sdk'
 import dotenv from 'dotenv'
+import { parseEther } from 'ethers'
 
 dotenv.config()
 
 async function main() {
-    const [owner] = await hre.ethers.getSigners()
+    const [owner, ...otherSigners] = await hre.ethers.getSigners()
+    const otherAccounts = otherSigners.slice(0, 5)
     const animalContract = await hre.ethers.deployContract('AnimalNFT')
 
     await animalContract.waitForDeployment()
@@ -18,7 +20,9 @@ async function main() {
     console.log(`Marketplace contract deployed to ${await marketplaceContract.getAddress()}`)
     const pinata = new PinataSDK(process.env.PINATA_API_KEY, process.env.PINATA_API_SECRET)
 
-    RACES.forEach(async (race) => {
+    console.log('-----------')
+
+    for await (const race of RACES) {
         const uploadPictureOptions = {
             pinataMetadata: {
                 name: `image_${race.id}`
@@ -55,9 +59,18 @@ async function main() {
 
         console.log(`[${race.id}] Creating the race...`)
         await animalContract.createNewRace(race.id, BigInt(race.maxChildrenCount), `ipfs://${ipfsMetadata}`)
-        await animalContract.safeMintAnimal(race.id)
-        await animalContract.safeMintAnimal(race.id)
-    })
+
+        for await (const account of otherAccounts) {
+            // await animalContract.connect(account).safeMintAnimal(race.id)
+            await animalContract.connect(account).safeMintAnimal(race.id)
+            const tokenId = await animalContract.connect(account).getLastTokenId()
+            console.log({ tokenId, m: await marketplaceContract.getAddress() })
+            await animalContract.connect(account).approve(await marketplaceContract.getAddress(), tokenId)
+            await marketplaceContract
+                .connect(account)
+                .putOnSale(tokenId, parseEther(Math.random().toString().slice(0, 5)))
+        }
+    }
 }
 
 main().catch((error) => {
