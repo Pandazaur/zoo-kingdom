@@ -13,14 +13,15 @@ async function main() {
 
     const zooPass = await hre.ethers.deployContract('ZooPass')
     await zooPass.waitForDeployment()
+    console.log(`[ZooPass]: ${await zooPass.getAddress()}`)
 
     const animalContract = await hre.ethers.deployContract('AnimalNFT', [await zooPass.getAddress()])
     await animalContract.waitForDeployment()
 
-    console.log(`Animal contract deployed to ${await animalContract.getAddress()}`)
+    console.log(`[AnimalNFT]: ${await animalContract.getAddress()}`)
     const marketplaceContract = await hre.ethers.deployContract('Marketplace', [await animalContract.getAddress()])
 
-    console.log(`Marketplace contract deployed to ${await marketplaceContract.getAddress()}`)
+    console.log(`[Marketplace]: ${await marketplaceContract.getAddress()}`)
     const pinata = new PinataSDK(process.env.PINATA_API_KEY, process.env.PINATA_API_SECRET)
 
     console.log('-----------')

@@ -1,13 +1,14 @@
 'use client'
-import React from 'react'
+import React, { useMemo } from 'react'
 import Image from 'next/image'
-import { useWriteContract } from 'wagmi'
+import { useAccount, useReadContract, useWriteContract } from 'wagmi'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import useMetadata from '@/lib/hooks/useMetadata'
 import { convertIpfsToHttps } from '@/lib/strings'
 import { RaceMetadata } from '@/types/Race.type'
 import { grandstander } from '@/lib/fonts'
+import { contractMainInfos as zooPassContractBase } from '@/lib/contracts/useZooPass'
 
 import { contractMainInfos } from '@/lib/contracts/useAnimalContract'
 
@@ -16,10 +17,12 @@ type Props = {
         id: string
         maxChildrenCount: BigInt
         metadataUri: string
+        isPremium: boolean
     }
 }
 
 export default function AnimalRace(props: Props) {
+    const account = useAccount()
     const { data: metadata } = useMetadata<RaceMetadata>(props.race.metadataUri)
     const { writeContract, isPending } = useWriteContract({
         mutation: {
@@ -30,6 +33,29 @@ export default function AnimalRace(props: Props) {
             },
         },
     })
+
+    const { data: zooPassBalance, isLoading: isLoadingZooPass } = useReadContract({
+        ...zooPassContractBase,
+        functionName: 'balanceOf',
+        args: [account.address]
+    })
+
+
+    const buttonState = useMemo<{ text: string, disabled?: boolean, isPending?: boolean }>(() => {
+        if (!account.isConnected) {
+            return { text: `Connect your wallet`, disabled: true}
+        }
+
+        if (isPending) {
+            return { text: 'Loading ...', isPending: true }
+        }
+
+        if (props.race.isPremium && !zooPassBalance) {
+            return { text: 'You need a premium account', disabled: true }
+        }
+
+        return { text: 'Mint animal' }
+    }, [account.isConnected, isPending, zooPassBalance, props.race])
 
     const onMint = () => {
         writeContract({
@@ -54,8 +80,8 @@ export default function AnimalRace(props: Props) {
                 <p className="text-xs">{metadata?.description}</p>
             </div>
 
-            <Button onClick={onMint} isPending={isPending}>
-                {isPending ? 'Loading ...' : 'Mint animal'}
+            <Button onClick={onMint} isPending={buttonState.isPending} disabled={buttonState.disabled}>
+                {buttonState.text}
             </Button>
         </div>
     )
