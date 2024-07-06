@@ -7,6 +7,7 @@ import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import { grandstander } from '@/lib/fonts'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 import Providers from '@/components/Providers'
+import PremiumAccess from './PremiumAccess'
 
 const navigation = [
     { name: 'Marketplace', href: '/app/marketplace' },
@@ -38,6 +39,7 @@ export default function Example() {
                         ))}
                     </div>
                 </div>
+                <PremiumAccess/>
                 <div className="flex lg:hidden">
                     <button
                         type="button"
@@ -82,6 +84,7 @@ export default function Example() {
                                     </a>
                                 ))}
                             </div>
+                            <PremiumAccess/>
                             <div className={'pt-4'}>
                                 <Providers>
                                     <ConnectButton />
