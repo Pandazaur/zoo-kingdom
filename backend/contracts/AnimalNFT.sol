@@ -9,6 +9,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
 error RaceAlreadyExisting(string race);
+error NeedPremiumAccess();
 
 /**
  * @title Every animal in the zoo is a "Animal" NFT.
@@ -27,6 +28,7 @@ contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable {
         string id;
         uint maxChildrenCount;
         string metadataUri;
+        bool isPremium;
     }
 
     struct Animal {
@@ -36,6 +38,7 @@ contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable {
         Gender gender;
     }
 
+    ERC721 public zooPass;
     uint256 private _nextTokenId;
     mapping(uint => Animal) private animalForTokenId;
     Race[] private races;
@@ -43,30 +46,44 @@ contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable {
     event RaceCreated(Race race);
     event AnimalCreated(Animal animal, uint tokenId);
 
-    constructor() ERC721("Animal", "kANIMAL") Ownable(msg.sender) {
+    /**
+     * @param _zooPassAddress The address of the "Zoo Pass" (NFT contract) needed to access premium features
+     */
+    constructor(address _zooPassAddress) ERC721("Animal", "kANIMAL") Ownable(msg.sender) {
         _nextTokenId = 1;
+        zooPass = ERC721(_zooPassAddress);
     }
 
-    // function safeMint(address to) public onlyOwner {
-    //     uint256 tokenId = _nextTokenId++;
-    //     _safeMint(to, tokenId);
-    // }
-
-    function createNewRace(string calldata _raceId, uint _maxChildrenCount, string calldata _metadataUri) external onlyOwner {
-        if (!eq(getRaceById(_raceId).id, "")) {
+    /**
+     * @notice Create a new animal race that is mintable for players.
+     * @param _raceId Race slug of the new animal race
+     * @param _maxChildrenCount Maximum count of children each animal can produce
+     * @param _metadataUri Metadara URI do get informations about the race (uploaded on IPFS)
+     * @param _isPremium If the minter needs to have a premium access (using a NFT)
+     */
+    function createNewRace(string calldata _raceId, uint _maxChildrenCount, string calldata _metadataUri, bool _isPremium) external onlyOwner {
+        if (!Strings.equal(getRaceById(_raceId).id, "")) {
             revert RaceAlreadyExisting(_raceId);
         }
 
-        Race memory newRace = Race({id: _raceId, maxChildrenCount: _maxChildrenCount, metadataUri: _metadataUri});
+        Race memory newRace = Race({id: _raceId, maxChildrenCount: _maxChildrenCount, metadataUri: _metadataUri, isPremium: _isPremium});
 
         races.push(newRace);
         emit RaceCreated(newRace);
     }
 
-    // @dev We should use a Chainlink VRF Random generator for the gender
+    /**
+     * @notice Mint an animal to the caller of the function
+     * @dev We should use a Chainlink VRF Random generator for the gender
+     * @param _raceId Slug of the race we want to mint
+     */
     function safeMintAnimal(string calldata _raceId) external {
         Race memory race = getRaceById(_raceId);
         require(!Strings.equal(getRaceById(_raceId).id, ""), "Undefined race");
+
+        if (race.isPremium == true && zooPass.balanceOf(msg.sender) == 0) {
+            revert NeedPremiumAccess();
+        }
 
         uint256 tokenId = _nextTokenId++;
 
@@ -81,14 +98,19 @@ contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable {
      * @param _raceId Id of the race to get
      * @return race the "race" matching the race id, otherwise an empty race
      */
-    function getRaceById(string calldata _raceId) internal view returns (Race memory race) {
+    function getRaceById(string calldata _raceId) public view returns (Race memory race) {
         for (uint i = 0; i < races.length; i++) {
-            if (eq(races[i].id, _raceId)) {
+            if (Strings.equal(races[i].id, _raceId)) {
                 return races[i];
             }
         }
     }
 
+    /**
+     * @notice Get the animal list for an address and returns it
+     * @param _addr Address target to check
+     * @return Array containing the animals
+     */
     function getAnimalsForAddress(address _addr) external view returns (Animal[] memory) {
         uint addressAnimalCount = balanceOf(_addr);
 
@@ -102,26 +124,29 @@ contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable {
         return animals;
     }
 
+    /**
+     * @notice Get the animal races available in the game
+     * @return Array containing the races
+     */
     function getRaces() external view returns (Race[] memory) {
         return races;
     }
 
-    function getAnimal(uint tokenId) external view returns (Animal memory) {
-        return animalForTokenId[tokenId];
-    }
-
-    function getLastTokenId() external view returns (uint) {
-        return _nextTokenId - 1;
+    /**
+     * @notice Get the animal data linked to the token id.
+     * @param _tokenId Token id to check
+     * @return Array containing the races
+     */
+    function getAnimal(uint _tokenId) external view returns (Animal memory) {
+        return animalForTokenId[_tokenId];
     }
 
     /**
-     * @notice Compare two strings
-     * @param a the first string
-     * @param b the second string
-     * @return `true` if the strings are the same, otherwise `false`
+     * @notice Get the last token id generated when minted animals
+     * @return The last token used.
      */
-    function eq(string memory a, string memory b) internal pure returns (bool) {
-        return (keccak256(abi.encodePacked((a))) == keccak256(abi.encodePacked((b))));
+    function getLastTokenId() external view returns (uint) {
+        return _nextTokenId - 1;
     }
 
     // -------------------------------------------------------------------------------

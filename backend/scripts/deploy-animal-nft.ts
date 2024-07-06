@@ -10,8 +10,11 @@ dotenv.config()
 async function main() {
     const [owner, ...otherSigners] = await hre.ethers.getSigners()
     const otherAccounts = otherSigners.slice(0, 5)
-    const animalContract = await hre.ethers.deployContract('AnimalNFT')
 
+    const zooPass = await hre.ethers.deployContract('ZooPass')
+    await zooPass.waitForDeployment()
+
+    const animalContract = await hre.ethers.deployContract('AnimalNFT', [await zooPass.getAddress()])
     await animalContract.waitForDeployment()
 
     console.log(`Animal contract deployed to ${await animalContract.getAddress()}`)
@@ -58,17 +61,23 @@ async function main() {
         )
 
         console.log(`[${race.id}] Creating the race...`)
-        await animalContract.createNewRace(race.id, BigInt(race.maxChildrenCount), `ipfs://${ipfsMetadata}`)
+        await animalContract.createNewRace(
+            race.id,
+            BigInt(race.maxChildrenCount),
+            `ipfs://${ipfsMetadata}`,
+            race.isPremium ?? false
+        )
 
-        for await (const account of otherAccounts) {
-            // await animalContract.connect(account).safeMintAnimal(race.id)
-            await animalContract.connect(account).safeMintAnimal(race.id)
-            const tokenId = await animalContract.connect(account).getLastTokenId()
-            console.log({ tokenId, m: await marketplaceContract.getAddress() })
-            await animalContract.connect(account).approve(await marketplaceContract.getAddress(), tokenId)
-            await marketplaceContract
-                .connect(account)
-                .putOnSale(tokenId, parseEther(Math.random().toString().slice(0, 5)))
+        if (!race.isPremium) {
+            for await (const account of otherAccounts) {
+                await animalContract.connect(account).safeMintAnimal(race.id)
+                const tokenId = await animalContract.connect(account).getLastTokenId()
+
+                await animalContract.connect(account).approve(await marketplaceContract.getAddress(), tokenId)
+                await marketplaceContract
+                    .connect(account)
+                    .putOnSale(tokenId, parseEther(Math.random().toString().slice(0, 5)))
+            }
         }
     }
 }

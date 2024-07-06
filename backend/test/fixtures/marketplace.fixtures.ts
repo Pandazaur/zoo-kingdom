@@ -5,17 +5,25 @@ import RACES from '../../metadata/races'
 
 export async function deployAnimalContract() {
     const [owner, otherAccount] = await hre.ethers.getSigners()
-
-    const animalContract = await hre.ethers.deployContract('AnimalNFT')
+    const zooPassContract = await hre.ethers.deployContract('ZooPass')
+    await zooPassContract.waitForDeployment()
+    const animalContract = await hre.ethers.deployContract('AnimalNFT', [await zooPassContract.getAddress()])
 
     await animalContract.waitForDeployment()
 
     for (const race of RACES) {
-        await animalContract.createNewRace(race.id, BigInt(race.maxChildrenCount), `ipfs://${race.id}`)
+        await animalContract.createNewRace(
+            race.id,
+            BigInt(race.maxChildrenCount),
+            `ipfs://${race.id}`,
+            race.isPremium ?? false
+        )
 
-        // Odd tokenId = Owner, Event tokenId = OtherAccount
-        await animalContract.safeMintAnimal(race.id)
-        await animalContract.connect(otherAccount).safeMintAnimal(race.id)
+        if (!race.isPremium) {
+            // Odd tokenId = Owner, Event tokenId = OtherAccount
+            await animalContract.safeMintAnimal(race.id)
+            await animalContract.connect(otherAccount).safeMintAnimal(race.id)
+        }
     }
 
     return { owner, otherAccount, animalContract }
@@ -23,9 +31,8 @@ export async function deployAnimalContract() {
 
 export async function deployMarketplace() {
     const { owner, otherAccount, animalContract } = await loadFixture(deployAnimalContract)
-
+    await animalContract.waitForDeployment()
     const marketplaceContract = await hre.ethers.deployContract('Marketplace', [await animalContract.getAddress()])
-
     return {
         owner,
         otherAccount,
@@ -36,7 +43,7 @@ export async function deployMarketplace() {
 
 export async function deployMarketplaceWithAnAnimalMinted() {
     const { owner, otherAccount, animalContract } = await loadFixture(deployAnimalContract)
-
+    await animalContract.waitForDeployment()
     const marketplaceContract = await hre.ethers.deployContract('Marketplace', [await animalContract.getAddress()])
 
     await animalContract.safeMintAnimal(RACES[0].id)
@@ -53,7 +60,7 @@ export async function deployMarketplaceWithAnAnimalMinted() {
 
 export async function deployMarketplaceWithAnimalOnSale() {
     const { owner, otherAccount, animalContract } = await loadFixture(deployAnimalContract)
-
+    await animalContract.waitForDeployment()
     const marketplaceContract = await hre.ethers.deployContract('Marketplace', [await animalContract.getAddress()])
 
     const markerplaceAddress = await marketplaceContract.getAddress()
