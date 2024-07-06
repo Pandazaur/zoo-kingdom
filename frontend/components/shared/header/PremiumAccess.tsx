@@ -1,6 +1,8 @@
 import React from 'react'
-import { useZooPass, contractMainInfos } from '@/lib/contracts/useZooPass'
 import { useAccount, useReadContract, useWriteContract } from 'wagmi'
+import { useZooPass, contractMainInfos } from '@/lib/contracts/useZooPass'
+import { formatEther } from 'viem'
+import { BoltIcon } from '@heroicons/react/24/outline'
 
 type Props = {}
 
@@ -37,9 +39,12 @@ export default function PremiumAccess(props: Props) {
     }
 
     return (
-        <button className="p-4 rounded-lg border border-black text-left" onClick={onGoPremium}>
-            <h4 className={isPremium ? 'font-medium text-amber-500' : 'font-medium'}>{isPremium ? 'Premium' : 'Basic'}</h4>
-            <p className="text-xs">{isPremium ? 'Vous avez accès aux fonctionnalités premium' : 'Passer premium'}</p>
+        <button className="py-2 px-6 rounded-xl border border-black border-2 text-left bg-white inline-flex items-center gap-4" onClick={onGoPremium}>
+            <BoltIcon width={32} />
+            <div>
+                <h4 className={isPremium ? 'font-medium text-amber-500' : 'font-medium'}>{isPremium ? 'Premium' : 'Become premium'}</h4>
+                <p className="text-xs">{isPremium ? 'You have access to the premium features' : `Unlock premium for ${formatEther(zooPassPrice)} ETH`}</p>
+            </div>
             
         </button>
     )

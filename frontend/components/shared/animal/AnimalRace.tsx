@@ -8,7 +8,7 @@ import useMetadata from '@/lib/hooks/useMetadata'
 import { convertIpfsToHttps } from '@/lib/strings'
 import { RaceMetadata } from '@/types/Race.type'
 import { grandstander } from '@/lib/fonts'
-import { contractMainInfos as zooPassContractBase } from '@/lib/contracts/useZooPass'
+import { useZooPass, contractMainInfos as zooPassContractBase } from '@/lib/contracts/useZooPass'
 
 import { contractMainInfos } from '@/lib/contracts/useAnimalContract'
 
@@ -34,11 +34,7 @@ export default function AnimalRace(props: Props) {
         },
     })
 
-    const { data: zooPassBalance, isLoading: isLoadingZooPass } = useReadContract({
-        ...zooPassContractBase,
-        functionName: 'balanceOf',
-        args: [account.address]
-    })
+    const { isPremium } = useZooPass()
 
 
     const buttonState = useMemo<{ text: string, disabled?: boolean, isPending?: boolean }>(() => {
@@ -50,12 +46,12 @@ export default function AnimalRace(props: Props) {
             return { text: 'Loading ...', isPending: true }
         }
 
-        if (props.race.isPremium && !zooPassBalance) {
+        if (props.race.isPremium && !isPremium) {
             return { text: 'You need a premium account', disabled: true }
         }
 
         return { text: 'Mint animal' }
-    }, [account.isConnected, isPending, zooPassBalance, props.race])
+    }, [account.isConnected, isPending, isPremium, props.race])
 
     const onMint = () => {
         writeContract({
@@ -66,7 +62,7 @@ export default function AnimalRace(props: Props) {
     }
 
     return (
-        <div className={'border-4 border-black rounded-2xl p-4 flex flex-col shadow-effect'}>
+        <div className={`border-4 border-black rounded-2xl p-4 flex flex-col shadow-effect ${buttonState.disabled ? `opacity-50` : ''}`}>
             <Image
                 className="mb-6 rounded-lg"
                 src={convertIpfsToHttps(metadata?.image || '')}
