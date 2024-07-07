@@ -13,7 +13,7 @@ const navigation = [
     { name: 'Marketplace', href: '/app/marketplace' },
     { name: 'Mes NFTs', href: '/app/my-nfts' },
     { name: 'Obtenir des animaux', href: '/app/animals' },
-    { name: 'Mon zoo', href: '#' },
+    // { name: 'Mon zoo', href: '#' },
 ]
 
 export default function Example() {

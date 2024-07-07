@@ -44,33 +44,23 @@ export default function MarketplacePage(props: Props) {
                         <h2 className={'text-xl font-medium mb-4'}>Les animaux en vente</h2>
                         <div className={'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'}>
                             {bids?.map((bid, i) => <BidCard bid={bid} key={i} />)}
-                        </div>
+                        </div> 
                     </div>
                     <div className="flex-1">
                         <h2 className={'text-xl font-medium mb-4'}>Les derniers événements</h2>
                         <div>
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <td>Action</td>
-                                        <td>Info</td>
-                                        <td>Date</td>
-                                        <td>From</td>
-                                    </tr>
-                                </thead>
-                            </table>
-                            <tbody>
-                                <tr></tr>
-                            </tbody>
-                            {events.map((event) => (
-                                <tr key={event.date}>
-                                    <td>{formatMarketplaceAction(event.action)}</td>
-                                    <td>Price: {formatEther(event.bid.price)} ETH</td>
-                                    <td>{formatDate(event.date)}</td>
-                                    <td>
+                            {events.toReversed().map((event) => (
+                                <div className='p-2 text-sm border border-black rounded-lg mb-2' key={event.date}>
+                                    <div className='inline-flex items-center gap-4'>
+                                        <div className="inline-block bg-amber-500 text-white p-1 rounded">{formatMarketplaceAction(event.action)}</div>
+                                        <div>{formatDate(event.date)}</div>
+                                    </div>
+                                    <div>Price: {formatEther(event.bid.price)} ETH</div>
+                                    
+                                    <div>
                                         {event.sender.slice(0, 5)}...{event.sender.slice(-5)}
-                                    </td>
-                                </tr>
+                                    </div>
+                                </div>
                             ))}
                         </div>
                     </div>
