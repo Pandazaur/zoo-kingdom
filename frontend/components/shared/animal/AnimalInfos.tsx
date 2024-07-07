@@ -10,10 +10,11 @@ import React from 'react'
 
 type Props = {
     animal: {
-        childCount: BigInt
+        tokenId: bigint
+        childCount: bigint
         gender: Gender
         race: {
-            maxChildrenCount: BigInt
+            maxChildrenCount: bigint
             metadataUri: string
         }
     }
@@ -33,7 +34,12 @@ export default function AnimalInfos(props: Props) {
             />
 
             <div className="mb-6 flex-1">
-                <h2 className={`text-2xl font-bold mb-2 ${grandstander.className}`}>{raceMetadata?.name}</h2>
+                <div className="inline-flex items-center mb-2 gap-2">
+                    <h2 className={`text-2xl font-bold ${grandstander.className}`}>
+                        {raceMetadata?.name}
+                    </h2>
+                    <div className='text-xs p-1 bg-emerald-100 rounded'># {props.animal.tokenId.toString()}</div>
+                </div>
                 <ul className="text-sm">
                     <li>
                         Child count: {props.animal.childCount.toLocaleString()} /{' '}

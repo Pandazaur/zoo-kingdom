@@ -15,13 +15,13 @@ import AnimalInfos from './AnimalInfos'
 
 type Props = {
     animal: {
-        tokenId: BigInt
+        tokenId: bigint
         race: {
             id: string
-            maxChildrenCount: BigInt
+            maxChildrenCount: bigint
             metadataUri: string
         }
-        childCount: BigInt
+        childCount: bigint
         gender: Gender
     }
 }
