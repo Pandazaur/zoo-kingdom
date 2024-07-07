@@ -8,6 +8,8 @@ import {
     deployMarketplaceWithAnimalOnSale
 } from './fixtures/marketplace.fixtures'
 
+const nonPremiumRaces = RACES.filter((race) => !race.isPremium)
+
 describe('Marketplace', function () {
     describe('Deployment', () => {
         it('should be deployed', async () => {
@@ -42,7 +44,7 @@ describe('Marketplace', function () {
         it('should NOT be able to sell an animal at 0 ETH', async () => {
             const { marketplaceContract, animalContract } = await loadFixture(deployMarketplace)
 
-            await animalContract.safeMintAnimal(RACES[0].id)
+            await animalContract.safeMintAnimal(nonPremiumRaces[0].id)
             const lastTokenId = await animalContract.getLastTokenId()
 
             await expect(marketplaceContract.putOnSale(lastTokenId, 0n)).to.be.revertedWith(

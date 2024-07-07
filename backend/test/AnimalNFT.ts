@@ -219,4 +219,41 @@ describe('AnimalNFT', () => {
             expect(animal.race.id).to.eq(race.id)
         })
     })
+
+    describe('breedAnimals()', async () => {
+        it('should NOT be able to breed not owned animals', async () => {
+            const { animalNFT, otherAccount } = await loadFixture(deployContracts)
+
+            await animalNFT.connect(otherAccount).safeMintAnimal(nonPremiumRace.id)
+            const firstToken = await animalNFT.getLastTokenId()
+
+            await animalNFT.safeMintAnimal(nonPremiumRace.id)
+            const secondToken = await animalNFT.getLastTokenId()
+
+            await expect(animalNFT.breedAnimals(firstToken, secondToken)).to.be.revertedWith('Not your NFT')
+            await expect(animalNFT.breedAnimals(secondToken, firstToken)).to.be.revertedWith("You don't own both NFTs.")
+        })
+
+        it('should be able to breed two owned animals', async () => {
+            const { animalNFT } = await loadFixture(deployContracts)
+
+            await animalNFT.safeMintAnimal(nonPremiumRace.id)
+            const parentATokenId = await animalNFT.getLastTokenId()
+
+            await animalNFT.safeMintAnimal(nonPremiumRace.id)
+            const parentBTokenId = await animalNFT.getLastTokenId()
+
+            await animalNFT.breedAnimals(parentATokenId, parentBTokenId)
+            const newCreatedToken = await animalNFT.getLastTokenId()
+
+            const parentA = await animalNFT.getAnimal(parentATokenId)
+            const parentB = await animalNFT.getAnimal(parentBTokenId)
+            const babyAnimal = await animalNFT.getAnimal(newCreatedToken)
+
+            expect(babyAnimal.race.id).to.eq(parentA.race.id)
+            expect(await animalNFT.ownerOf(newCreatedToken)).to.eq(await animalNFT.ownerOf(parentATokenId))
+            expect(parentA.childCount).to.eq(1)
+            expect(parentB.childCount).to.eq(1)
+        })
+    })
 })

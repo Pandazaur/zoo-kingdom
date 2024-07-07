@@ -3,6 +3,8 @@ import { parseEther } from 'ethers'
 import { loadFixture } from '@nomicfoundation/hardhat-toolbox/network-helpers'
 import RACES from '../../metadata/races'
 
+const nonPremiumRaces = RACES.filter((race) => !race.isPremium)
+
 export async function deployAnimalContract() {
     const [owner, otherAccount] = await hre.ethers.getSigners()
     const zooPassContract = await hre.ethers.deployContract('ZooPass')
@@ -46,7 +48,7 @@ export async function deployMarketplaceWithAnAnimalMinted() {
     await animalContract.waitForDeployment()
     const marketplaceContract = await hre.ethers.deployContract('Marketplace', [await animalContract.getAddress()])
 
-    await animalContract.safeMintAnimal(RACES[0].id)
+    await animalContract.safeMintAnimal(nonPremiumRaces[0].id)
     const lastTokenId = await animalContract.getLastTokenId()
 
     return {
@@ -65,12 +67,12 @@ export async function deployMarketplaceWithAnimalOnSale() {
 
     const markerplaceAddress = await marketplaceContract.getAddress()
 
-    await animalContract.safeMintAnimal(RACES[0].id)
+    await animalContract.safeMintAnimal(nonPremiumRaces[0].id)
     const tokenId = await animalContract.getLastTokenId()
     await animalContract.setApprovalForAll(markerplaceAddress, true)
     await marketplaceContract.putOnSale(tokenId, parseEther('0.1'))
 
-    await animalContract.connect(otherAccount).safeMintAnimal(RACES[0].id)
+    await animalContract.connect(otherAccount).safeMintAnimal(nonPremiumRaces[0].id)
     const otherAccountTokenId = await animalContract.connect(otherAccount).getLastTokenId()
     await animalContract.connect(otherAccount).setApprovalForAll(markerplaceAddress, true)
     await marketplaceContract.connect(otherAccount).putOnSale(otherAccountTokenId, parseEther('0.2'))

@@ -10,6 +10,7 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 
 error RaceAlreadyExisting(string race);
 error NeedPremiumAccess();
+error MaxChildrenReached(uint animalTokenId);
 
 /**
  * @title Every animal in the zoo is a "Animal" NFT.
@@ -45,6 +46,7 @@ contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable {
 
     event RaceCreated(Race race);
     event AnimalCreated(Animal animal, uint tokenId);
+    event Breed(uint parentA, uint parentB);
 
     /**
      * @param _zooPassAddress The address of the "Zoo Pass" (NFT contract) needed to access premium features
@@ -77,7 +79,7 @@ contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable {
      * @dev We should use a Chainlink VRF Random generator for the gender
      * @param _raceId Slug of the race we want to mint
      */
-    function safeMintAnimal(string calldata _raceId) external {
+    function safeMintAnimal(string memory _raceId) public {
         Race memory race = getRaceById(_raceId);
         require(!Strings.equal(getRaceById(_raceId).id, ""), "Undefined race");
 
@@ -98,7 +100,7 @@ contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable {
      * @param _raceId Id of the race to get
      * @return race the "race" matching the race id, otherwise an empty race
      */
-    function getRaceById(string calldata _raceId) public view returns (Race memory race) {
+    function getRaceById(string memory _raceId) public view returns (Race memory race) {
         for (uint i = 0; i < races.length; i++) {
             if (Strings.equal(races[i].id, _raceId)) {
                 return races[i];
@@ -122,6 +124,30 @@ contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable {
         }
 
         return animals;
+    }
+
+    function breedAnimals(uint tokenIdA, uint tokenIdB) external {
+        require(msg.sender == ownerOf(tokenIdA), "Not your NFT");
+        require(ownerOf(tokenIdB) == ownerOf(tokenIdA), "You don't own both NFTs.");
+
+        Animal storage animalA = animalForTokenId[tokenIdA];
+        Animal storage animalB = animalForTokenId[tokenIdB];
+
+        require(Strings.equal(animalA.race.id, animalB.race.id), "Animals are from different races");
+
+        if (animalA.childCount >= animalA.race.maxChildrenCount) {
+            revert MaxChildrenReached(animalA.tokenId);
+        }
+
+        if (animalB.childCount >= animalB.race.maxChildrenCount) {
+            revert MaxChildrenReached(animalB.tokenId);
+        }
+
+        animalA.childCount++;
+        animalB.childCount++;
+
+        safeMintAnimal(animalA.race.id);
+        emit Breed(tokenIdA, tokenIdB);
     }
 
     /**
