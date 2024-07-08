@@ -1,9 +1,9 @@
-import { abi } from '@/artifacts/contracts/ZooPass.sol/ZooPass.json'
+import ZooPass from '@/artifacts/contracts/ZooPass.sol/ZooPass.json'
 import { useMemo } from 'react'
 import { useAccount, useReadContract } from 'wagmi'
 
 export const contractMainInfos = {
-    abi,
+    abi: ZooPass.abi,
     address: process.env.NEXT_PUBLIC_ZOOPASS_ADDRESS,
 }
 

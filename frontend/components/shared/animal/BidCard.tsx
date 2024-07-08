@@ -70,6 +70,7 @@ export default function BidCard(props: Props) {
 
     return (
         <div className={'border-4 border-black rounded-2xl p-4 flex flex-col shadow-effect'}>
+            {/* @ts-ignore */}
             {!!animal && <AnimalInfos animal={animal} />}
             <ul>
                 <li className="inline-flex items-center gap-4 font-mono">

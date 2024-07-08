@@ -43,6 +43,7 @@ export default function MarketplacePage(props: Props) {
                     <div className="w-full md:w-8/12">
                         <h2 className={'text-xl font-medium mb-4'}>Les animaux en vente</h2>
                         <div className={'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'}>
+                            {/* @ts-ignore */}
                             {bids?.map((bid, i) => <BidCard bid={bid} key={i} />)}
                         </div> 
                     </div>

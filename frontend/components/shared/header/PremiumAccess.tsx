@@ -30,6 +30,7 @@ export default function PremiumAccess(props: Props) {
         }
 
         if (zooPassPrice) {
+            // @ts-ignore
             return `Unlock premium for ${formatEther(zooPassPrice)} ETH`
         }
 
@@ -46,6 +47,7 @@ export default function PremiumAccess(props: Props) {
             ...contractMainInfos,
             functionName: 'buyZooPass',
             args: [account.address],
+            // @ts-ignore
             value: zooPassPrice
         })
         

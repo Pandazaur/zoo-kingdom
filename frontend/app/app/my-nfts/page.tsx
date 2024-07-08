@@ -17,7 +17,8 @@ export default function AnimalsPage(props: Props) {
 
         return (
             <div className={'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'}>
-                {myAnimals?.map((animal) => <AnimalCard animal={animal} />)}
+                {/* @ts-ignore */}
+                {myAnimals?.map((animal) => <AnimalCard animal={animal} key={animal.tokenId}/>)}
             </div>
         )
     }

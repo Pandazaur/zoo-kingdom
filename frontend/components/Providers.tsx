@@ -20,6 +20,7 @@ const client = new QueryClient()
 const config = getDefaultConfig({
     appName: 'RainbowKit App',
     projectId: 'YOUR_PROJECT_ID',
+    /* @ts-ignore */
     chains: chains[process.env.NEXT_PUBLIC_ENV],
     ssr: true,
 })

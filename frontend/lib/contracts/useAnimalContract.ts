@@ -1,8 +1,8 @@
 import { useReadContract, useWriteContract } from 'wagmi'
-import { abi } from '@/artifacts/contracts/AnimalNFT.sol/AnimalNFT.json'
+import AnimalNFT from '@/artifacts/contracts/AnimalNFT.sol/AnimalNFT.json'
 
 export const contractMainInfos = {
-    abi,
+    abi: AnimalNFT.abi,
     address: process.env.NEXT_PUBLIC_ANIMAL_CONTRACT_ADDRESS,
 }
 
