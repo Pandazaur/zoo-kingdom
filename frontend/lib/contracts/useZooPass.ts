@@ -1,4 +1,4 @@
-import { abi } from '@/../backend/artifacts/contracts/ZooPass.sol/ZooPass.json'
+import { abi } from '@/artifacts/contracts/ZooPass.sol/ZooPass.json'
 import { useMemo } from 'react'
 import { useAccount, useReadContract } from 'wagmi'
 

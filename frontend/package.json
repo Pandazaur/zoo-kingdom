@@ -6,7 +6,8 @@
         "dev": "next dev -p 3007",
         "build": "next build",
         "start": "next start",
-        "lint": "next lint"
+        "lint": "next lint",
+        "sync-abi": "cp -r ../backend/artifacts ./artifacts"
     },
     "dependencies": {
         "@headlessui/react": "^2.1.1",

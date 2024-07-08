@@ -1,5 +1,5 @@
 import { useReadContract, useWriteContract } from 'wagmi'
-import { abi } from '@/../backend/artifacts/contracts/AnimalNFT.sol/AnimalNFT.json'
+import { abi } from '@/artifacts/contracts/AnimalNFT.sol/AnimalNFT.json'
 
 export const contractMainInfos = {
     abi,

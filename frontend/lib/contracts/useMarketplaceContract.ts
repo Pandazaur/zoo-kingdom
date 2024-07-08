@@ -1,4 +1,4 @@
-import { abi } from '@/../backend/artifacts/contracts/Marketplace.sol/Marketplace.json'
+import { abi } from '@/artifacts/contracts/Marketplace.sol/Marketplace.json'
 
 export const contractMainInfos = {
     abi,

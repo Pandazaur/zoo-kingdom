@@ -4,13 +4,13 @@ import '@rainbow-me/rainbowkit/styles.css'
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { WagmiProvider } from 'wagmi'
-import { mainnet, sepolia, hardhat, Chain } from 'wagmi/chains'
+import { arbitrum, arbitrumSepolia, hardhat } from 'wagmi/chains'
 import { getDefaultConfig, RainbowKitProvider, lightTheme } from '@rainbow-me/rainbowkit'
 
 const chains = {
     localhost: [hardhat],
-    testnet: [sepolia],
-    mainnet: [mainnet],
+    testnet: [arbitrumSepolia],
+    mainnet: [arbitrum],
 }
 
 type Props = {
