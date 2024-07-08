@@ -7,7 +7,7 @@ import '@nomicfoundation/hardhat-toolbox'
 dotenv.config()
 
 const config: HardhatUserConfig = {
-    solidity: '0.8.24',
+    solidity: '0.8.24'
 }
 
 if (process.env.ETHERSCAN_API_KEY) {
@@ -26,7 +26,7 @@ if (process.env.ALCHEMY_KEY && process.env.WALLET_PRIVATE_KEY) {
             url: `https://arb-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_KEY}`,
             accounts: [process.env.WALLET_PRIVATE_KEY as string]
         }
-    },
+    }
 }
 
 export default config
