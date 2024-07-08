@@ -12,6 +12,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          path: backend
 
       - name: Installer Node.js
         uses: actions/setup-node@v3
