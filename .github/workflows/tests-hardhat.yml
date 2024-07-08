@@ -26,3 +26,7 @@ jobs:
 
       - name: Exécuter les tests Hardhat
         run: npx hardhat test
+        env:
+          ALCHEMY_KEY: ""
+          WALLET_PRIVATE_KEY: ""
+          ETHERSCAN_API_KEY: ""
