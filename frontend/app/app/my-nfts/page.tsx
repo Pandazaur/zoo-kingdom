@@ -1,14 +1,29 @@
 'use client'
 import React from 'react'
-import { useAccount } from 'wagmi'
+import { useAccount, useReadContract } from 'wagmi'
 import { useReadAnimalContract } from '@/lib/contracts/useAnimalContract'
+import { animalNftAbi } from '@/contracts'
 import AnimalCard from '@/components/shared/animal/AnimalCard'
 
 type Props = {}
 
 export default function AnimalsPage(props: Props) {
     const { address } = useAccount()
-    const { data: myAnimals, isLoading } = useReadAnimalContract('getAnimalsForAddress', [address])
+    const {
+        data: myAnimals,
+        isLoading,
+        error,
+    } = useReadContract({
+        abi: animalNftAbi,
+        address: process.env.NEXT_PUBLIC_ANIMAL_CONTRACT_ADDRESS,
+        functionName: 'getAnimalsForAddress',
+        args: [address!],
+        query: {
+            enabled: () => !!address,
+        },
+    })
+
+    console.log({ error, myAnimals, isLoading })
 
     const renderMyAnimals = () => {
         if (isLoading) {
@@ -17,8 +32,7 @@ export default function AnimalsPage(props: Props) {
 
         return (
             <div className={'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'}>
-                {/* @ts-ignore */}
-                {myAnimals?.map((animal) => <AnimalCard animal={animal} key={animal.tokenId}/>)}
+                {myAnimals?.map((animal) => <AnimalCard animal={animal} key={animal.tokenId} />)}
             </div>
         )
     }

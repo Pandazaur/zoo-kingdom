@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useRef, useState } from 'react'
+import React, { useState } from 'react'
 import {
     Dialog,
     DialogContent,
@@ -10,16 +10,16 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { useWriteContract } from 'wagmi'
+import { useReadContract, useWriteContract } from 'wagmi'
 import Image from 'next/image'
 import { convertIpfsToHttps } from '@/lib/strings'
-import { abi } from '@/artifacts/contracts/Marketplace.sol/Marketplace.json'
-import { abi as animalAbi } from '@/artifacts/contracts/AnimalNFT.sol/AnimalNFT.json'
+import { marketplaceAbi } from '@/contracts'
 import { parseEther } from 'viem'
-import { useReadAnimalContract, contractMainInfos as mainAnimalContractInfos } from '@/lib/contracts/useAnimalContract'
+import { contractMainInfos as mainAnimalContractInfos } from '@/lib/contracts/useAnimalContract'
+import { contractMainInfos as marketplaceContractBase } from '@/lib/contracts/useMarketplaceContract'
 
 type Props = {
-    tokenId: BigInt
+    tokenId: bigint
     race?: {
         image?: string
     }
@@ -29,14 +29,15 @@ type Props = {
 export default function ModalSellAnimal(props: Props) {
     const [open, setOpen] = useState(false)
 
-    const { data: approvedAddress, refetch: refetchTokenApproval } = useReadAnimalContract('getApproved', [
-        props.tokenId,
-    ])
+    const { data: approvedAddress, refetch: refetchTokenApproval } = useReadContract({
+        ...mainAnimalContractInfos,
+        functionName: 'getApproved',
+        args: [props.tokenId],
+    })
 
     const { writeContract: approveNft, isPending: isPendingApprove } = useWriteContract({
         mutation: {
             onSuccess: () => {
-                console.log('Refetch approval')
                 refetchTokenApproval()
             },
         },
@@ -68,8 +69,7 @@ export default function ModalSellAnimal(props: Props) {
 
     const onSell = () => {
         writeContract({
-            abi,
-            address: process.env.NEXT_PUBLIC_MARKETPLACE_ADDRESS,
+            ...marketplaceContractBase,
             functionName: 'putOnSale',
             args: [props.tokenId, parseEther(amount)],
         })

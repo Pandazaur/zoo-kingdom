@@ -1,6 +1,6 @@
-import Marketplace from '@/artifacts/contracts/Marketplace.sol/Marketplace.json'
+import { marketplaceAbi } from '@/contracts'
 
 export const contractMainInfos = {
-    abi: Marketplace.abi,
+    abi: marketplaceAbi,
     address: process.env.NEXT_PUBLIC_MARKETPLACE_ADDRESS,
-}
+} as const

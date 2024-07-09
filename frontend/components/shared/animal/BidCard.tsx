@@ -3,7 +3,7 @@
 import React from 'react'
 import { formatEther, parseEther } from 'viem'
 import { useAccount, useReadContract, useWriteContract } from 'wagmi'
-import { useReadAnimalContract } from '@/lib/contracts/useAnimalContract'
+import { useReadAnimalContract, contractMainInfos as animalContractBase } from '@/lib/contracts/useAnimalContract'
 import AnimalInfos from './AnimalInfos'
 import { contractMainInfos } from '@/lib/contracts/useMarketplaceContract'
 import Image from 'next/image'
@@ -20,7 +20,11 @@ type Props = {
 
 export default function BidCard(props: Props) {
     const { address } = useAccount()
-    const { data: animal } = useReadAnimalContract('getAnimal', [props.bid.animalId])
+    const { data: animal } = useReadContract({
+        ...animalContractBase,
+        functionName: 'getAnimal',
+        args: [props.bid.animalId],
+    })
 
     const { writeContract: removeBid } = useWriteContract({
         mutation: {
@@ -70,7 +74,6 @@ export default function BidCard(props: Props) {
 
     return (
         <div className={'border-4 border-black rounded-2xl p-4 flex flex-col shadow-effect'}>
-            {/* @ts-ignore */}
             {!!animal && <AnimalInfos animal={animal} />}
             <ul>
                 <li className="inline-flex items-center gap-4 font-mono">

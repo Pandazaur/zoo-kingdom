@@ -1,9 +1,9 @@
-import ZooPass from '@/artifacts/contracts/ZooPass.sol/ZooPass.json'
 import { useMemo } from 'react'
 import { useAccount, useReadContract } from 'wagmi'
+import { zooPassAbi } from '@/contracts'
 
 export const contractMainInfos = {
-    abi: ZooPass.abi,
+    abi: zooPassAbi,
     address: process.env.NEXT_PUBLIC_ZOOPASS_ADDRESS,
 }
 
@@ -13,7 +13,10 @@ export function useZooPass() {
     const { data: balance, refetch } = useReadContract({
         ...contractMainInfos,
         functionName: 'balanceOf',
-        args: [account.address],
+        args: [account.address!],
+        query: {
+            enabled: !!account.address,
+        },
     })
 
     const isPremium = useMemo(() => {
