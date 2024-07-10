@@ -8,7 +8,7 @@ import useMetadata from '@/lib/hooks/useMetadata'
 import { convertIpfsToHttps } from '@/lib/strings'
 import { RaceMetadata } from '@/types/Race.type'
 import { grandstander } from '@/lib/fonts'
-import { useZooPass, contractMainInfos as zooPassContractBase } from '@/lib/contracts/useZooPass'
+import { useZooPass } from '@/lib/contracts/useZooPass'
 
 import { contractMainInfos } from '@/lib/contracts/useAnimalContract'
 
@@ -36,10 +36,9 @@ export default function AnimalRace(props: Props) {
 
     const { isPremium } = useZooPass()
 
-
-    const buttonState = useMemo<{ text: string, disabled?: boolean, isPending?: boolean }>(() => {
+    const buttonState = useMemo<{ text: string; disabled?: boolean; isPending?: boolean }>(() => {
         if (!account.isConnected) {
-            return { text: `Connect your wallet`, disabled: true}
+            return { text: `Connect your wallet`, disabled: true }
         }
 
         if (isPending) {
@@ -62,7 +61,9 @@ export default function AnimalRace(props: Props) {
     }
 
     return (
-        <div className={`border-4 border-black rounded-2xl p-4 flex flex-col shadow-effect ${buttonState.disabled ? `opacity-50` : ''}`}>
+        <div
+            className={`border-4 border-black rounded-2xl p-4 flex flex-col shadow-effect ${buttonState.disabled ? `opacity-50` : ''}`}
+        >
             <Image
                 className="mb-6 rounded-lg"
                 src={convertIpfsToHttps(metadata?.image || '')}

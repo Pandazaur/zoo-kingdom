@@ -1,9 +1,9 @@
 'use client'
 
 import React from 'react'
-import { formatEther, parseEther } from 'viem'
+import { formatEther } from 'viem'
 import { useAccount, useReadContract, useWriteContract } from 'wagmi'
-import { useReadAnimalContract, contractMainInfos as animalContractBase } from '@/lib/contracts/useAnimalContract'
+import { contractMainInfos as animalContractBase } from '@/lib/contracts/useAnimalContract'
 import AnimalInfos from './AnimalInfos'
 import { contractMainInfos } from '@/lib/contracts/useMarketplaceContract'
 import Image from 'next/image'
