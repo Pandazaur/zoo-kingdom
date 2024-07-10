@@ -13,7 +13,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  */
 contract ZooPass is ERC721, ERC721Burnable, Ownable {
     uint256 private _nextTokenId;
-    uint public zooPassPrice = 1 ether;
+    uint public zooPassPrice = 10000000000000000 wei; // = 0.01 ETH
 
     constructor() ERC721("Zoo Pass", "kPASS") Ownable(msg.sender) {}
 

@@ -24,8 +24,8 @@ export default function Example() {
             <nav className="mx-auto flex container items-center justify-between py-4" aria-label="Global">
                 <div className="flex items-center gap-x-12">
                     <a href="#" className="-m-1.5 p-1.5 inline-flex gap-6 items-center">
-                        <Image src={'/images/zoo-kingdom-logo.png'} width={80} height={50} alt="Zoo Kingdom Logo" />
-                        {/* <h1 className={`${grandstander.className} text-2xl font-bold`}>Zoo Kingdom</h1> */}
+                        {/* <Image src={'/images/zoo-kingdom-logo.png'} width={80} height={50} alt="Zoo Kingdom Logo" /> */}
+                        <h1 className={`${grandstander.className} text-2xl font-bold`}>Anima World</h1>
                     </a>
                     <div className="hidden lg:flex lg:gap-x-12">
                         {navigation.map((item) => (
@@ -39,7 +39,7 @@ export default function Example() {
                         ))}
                     </div>
                 </div>
-                <PremiumAccess/>
+                <PremiumAccess />
                 <div className="flex lg:hidden">
                     <button
                         type="button"
@@ -60,7 +60,7 @@ export default function Example() {
                 <DialogPanel className="fixed inset-y-0 right-0 z-10 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
                     <div className="flex items-center justify-between">
                         <a href="#" className="-m-1.5 p-1.5">
-                            <h1 className={`${grandstander.className} text-xl font-bold`}>Zoo Kingdom</h1>
+                            <h1 className={`${grandstander.className} text-xl font-bold`}>Anima World</h1>
                         </a>
                         <button
                             type="button"
@@ -84,7 +84,7 @@ export default function Example() {
                                     </a>
                                 ))}
                             </div>
-                            <PremiumAccess/>
+                            <PremiumAccess />
                             <div className={'pt-4'}>
                                 <Providers>
                                     <ConnectButton />

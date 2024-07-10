@@ -12,6 +12,7 @@ export default function AnimalsPage(props: Props) {
         data: myAnimals,
         isLoading,
         error,
+        refetch,
     } = useReadContract({
         abi: animalNftAbi,
         address: process.env.NEXT_PUBLIC_ANIMAL_CONTRACT_ADDRESS,
@@ -31,7 +32,9 @@ export default function AnimalsPage(props: Props) {
 
         return (
             <div className={'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'}>
-                {myAnimals?.map((animal) => <AnimalCard animal={animal} key={animal.tokenId} />)}
+                {myAnimals?.map((animal) => (
+                    <AnimalCard animal={animal} key={animal.tokenId} onBreeded={() => refetch()} />
+                ))}
             </div>
         )
     }

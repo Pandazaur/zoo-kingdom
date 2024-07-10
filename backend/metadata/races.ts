@@ -27,7 +27,7 @@ const RACES: Race[] = [
     },
     {
         id: 'racoon',
-        maxChildrenCount: 8,
+        maxChildrenCount: 2,
         isPremium: true,
         metadata: {
             name: 'Raton Laveur',

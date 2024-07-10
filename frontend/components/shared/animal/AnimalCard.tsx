@@ -12,6 +12,7 @@ import { grandstander } from '@/lib/fonts'
 import { Gender, formatGender } from '@/lib/animal'
 import ModalSellAnimal from './ModalSellAnimal'
 import AnimalInfos from './AnimalInfos'
+import ModalBreed from './ModalBreed'
 
 type Props = {
     animal: {
@@ -24,6 +25,7 @@ type Props = {
         childCount: bigint
         gender: Gender
     }
+    onBreeded?: () => unknown
 }
 
 export default function AnimalCard(props: Props) {
@@ -36,9 +38,14 @@ export default function AnimalCard(props: Props) {
                 <div className="flex-1">
                     <ModalSellAnimal tokenId={props.animal.tokenId} race={raceMetadata} />
                 </div>
-                <Button className="flex-1" disabled>
-                    Transfer
-                </Button>
+                <div className="flex-1">
+                    <ModalBreed
+                        tokenId={props.animal.tokenId}
+                        animal={props.animal}
+                        raceMetadata={raceMetadata}
+                        onBreeded={props.onBreeded}
+                    />
+                </div>
             </div>
         </div>
     )
