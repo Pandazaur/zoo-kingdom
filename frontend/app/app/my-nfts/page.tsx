@@ -1,7 +1,6 @@
 'use client'
 import React from 'react'
 import { useAccount, useReadContract } from 'wagmi'
-import { useReadAnimalContract } from '@/lib/contracts/useAnimalContract'
 import { animalNftAbi } from '@/contracts'
 import AnimalCard from '@/components/shared/animal/AnimalCard'
 
