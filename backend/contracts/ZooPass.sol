@@ -15,6 +15,8 @@ contract ZooPass is ERC721, ERC721Burnable, Ownable {
     uint256 private _nextTokenId;
     uint public zooPassPrice = 10000000000000000 wei; // = 0.01 ETH
 
+    event PriceChanged(uint newPrice);
+
     constructor() ERC721("Zoo Pass", "kPASS") Ownable(msg.sender) {}
 
     /**
@@ -24,6 +26,8 @@ contract ZooPass is ERC721, ERC721Burnable, Ownable {
     function changeZooPrice(uint _newPriceInWei) external onlyOwner {
         require(_newPriceInWei > 0, "Price cannot be 0.");
         zooPassPrice = _newPriceInWei;
+
+        emit PriceChanged(_newPriceInWei);
     }
 
     /**

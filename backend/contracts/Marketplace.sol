@@ -4,10 +4,14 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-error NotBought();
-
-contract Marketplace is IERC721Receiver {
+/**
+ * @title The marketplace contract to trade animals
+ * @notice Provide functions to sell animals, buy animals or cancel an offer on the marketplace
+ * @author Alexandre Borel
+ */
+contract Marketplace is IERC721Receiver, ReentrancyGuard {
     struct Bid {
         uint animalId;
         uint price;
@@ -60,7 +64,11 @@ contract Marketplace is IERC721Receiver {
         emit MarketplaceChange(MarketplaceAction.SELL, bid, msg.sender, block.timestamp);
     }
 
-    function removeFromSale(uint _animalId) public bidMustExistsForAnimalId(_animalId) {
+    /**
+     * @notice Remove an animal from the Marketplace,
+     * @param _animalId Token of the animal to remove from sale.
+     */
+    function removeFromSale(uint _animalId) external nonReentrant bidMustExistsForAnimalId(_animalId) {
         require(getBidForAnimalId(_animalId).owner == msg.sender, "Not the owner of the bid");
 
         Bid memory bid = getBidForAnimalId(_animalId);
@@ -71,9 +79,10 @@ contract Marketplace is IERC721Receiver {
     }
 
     /**
-     * @dev Attention à la reeentrency
+     * @notice Buy an animal on the marketplace
+     * @param _animalId Token of the animal to buy.
      */
-    function buy(uint _animalId) external payable bidMustExistsForAnimalId(_animalId) {
+    function buy(uint _animalId) external payable nonReentrant bidMustExistsForAnimalId(_animalId) {
         Bid memory bid = getBidForAnimalId(_animalId);
 
         require(bid.owner != msg.sender, "Cannot buy your own bid");
@@ -90,6 +99,10 @@ contract Marketplace is IERC721Receiver {
         emit MarketplaceChange(MarketplaceAction.BUY, bid, msg.sender, block.timestamp);
     }
 
+    /**
+     * @notice Remove an animal offer from the marketplace
+     * @param _bid Bid to remove
+     */
     function removeBid(Bid memory _bid) internal {
         bool hasDeletedBid;
 
@@ -109,10 +122,19 @@ contract Marketplace is IERC721Receiver {
         }
     }
 
+    /**
+     * @notice Get the lost of marketplace offers
+     * @return Offer list available on the marketplace
+     */
     function getBids() external view returns (Bid[] memory) {
         return bids;
     }
 
+    /**
+     * @notice Get an offer corresponding to an animal id.
+     * @param _animalId Animal id linked to the offer
+     * @return bid the marketplace offer
+     */
     function getBidForAnimalId(uint _animalId) public view returns (Bid memory bid) {
         for (uint i = 0; i < bids.length; i++) {
             if (bids[i].animalId == _animalId) {
@@ -121,6 +143,9 @@ contract Marketplace is IERC721Receiver {
         }
     }
 
+    /**
+     * @notice Allow the smart contracts to receive NFTs
+     */
     function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data) external override returns (bytes4) {
         return IERC721Receiver.onERC721Received.selector;
     }

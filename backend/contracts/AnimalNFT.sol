@@ -7,6 +7,8 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+
 
 error RaceAlreadyExisting(string race);
 error NeedPremiumAccess();
@@ -19,12 +21,19 @@ error MaxChildrenReached(uint animalTokenId);
  * @dev ERC721Enumerable: to show collected NFT by account
  *      ERC721Burnable: to allow burning some animals (no animal injured)
  */
-contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable {
+contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable, ReentrancyGuard {
+    /**
+     * @notice Animal gender determined "randomly" when minting
+     */
     enum Gender {
         MALE,
         FEMALE
     }
 
+    /**
+     * @title Animal Race
+     * @notice Animal race used to define an Animal. Every animal has a "Race"
+     */
     struct Race {
         string id;
         uint maxChildrenCount;
@@ -32,6 +41,10 @@ contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable {
         bool isPremium;
     }
 
+    /**
+     * @title Animal
+     * @notice Animal structure unique for each NFT.
+     */
     struct Animal {
         uint tokenId;
         Race race;
@@ -79,7 +92,7 @@ contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable {
      * @dev We should use a Chainlink VRF Random generator for the gender
      * @param _raceId Slug of the race we want to mint
      */
-    function safeMintAnimal(string memory _raceId) public {
+    function safeMintAnimal(string memory _raceId) public nonReentrant {
         Race memory race = getRaceById(_raceId);
         require(!Strings.equal(getRaceById(_raceId).id, ""), "Undefined race");
 
@@ -132,7 +145,7 @@ contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable {
      * @param tokenIdB Token id of the second parent
      * @custom:improvement Needs 200 "game tokens" to breed
      */
-    function breedAnimals(uint tokenIdA, uint tokenIdB) external {
+    function breedAnimals(uint tokenIdA, uint tokenIdB) external nonReentrant {
         require(msg.sender == ownerOf(tokenIdA), "Not your NFT");
         require(ownerOf(tokenIdB) == ownerOf(tokenIdA), "You don't own both NFTs.");
 
