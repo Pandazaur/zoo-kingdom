@@ -145,7 +145,7 @@ contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable, Reentra
      * @param tokenIdB Token id of the second parent
      * @custom:improvement Needs 200 "game tokens" to breed
      */
-    function breedAnimals(uint tokenIdA, uint tokenIdB) external nonReentrant {
+    function breedAnimals(uint tokenIdA, uint tokenIdB) external {
         require(msg.sender == ownerOf(tokenIdA), "Not your NFT");
         require(ownerOf(tokenIdB) == ownerOf(tokenIdA), "You don't own both NFTs.");
 
