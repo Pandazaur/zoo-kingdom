@@ -41,4 +41,11 @@ contract ZooPass is ERC721, ERC721Burnable, Ownable {
         uint256 tokenId = _nextTokenId++;
         _safeMint(_to, tokenId);
     }
+
+    function withdraw(address _to) external onlyOwner {
+        require(_to != address(0), "Wrong address destination");
+        (bool success, ) = payable(_to).call{value: address(this).balance}("");
+
+        require(success == true, "Could not withdraw");
+    }
 }

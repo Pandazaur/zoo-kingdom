@@ -86,4 +86,38 @@ describe('ZooPass', () => {
             expect(await zooPass.balanceOf(owner.address)).to.eq(1n)
         })
     })
+
+    describe('withdraw()', () => {
+        it('should NOT be able to withdraw if not owner', async () => {
+            const { zooPass, owner, otherAccount } = await loadFixture(deployZooPass)
+
+            await expect(zooPass.connect(otherAccount).withdraw(otherAccount.address)).to.be.revertedWithCustomError(
+                zooPass,
+                'OwnableUnauthorizedAccount'
+            )
+        })
+
+        it('owner should NOT be able to withdraw to a "0x0" address', async () => {
+            const { zooPass } = await loadFixture(deployZooPass)
+
+            await expect(zooPass.withdraw('0x0000000000000000000000000000000000000000')).to.be.revertedWith(
+                'Wrong address destination'
+            )
+        })
+
+        it('owner should be able to withdraw to a valid address', async () => {
+            const { zooPass, owner, otherAccount } = await loadFixture(deployZooPass)
+
+            const price = await zooPass.zooPassPrice()
+            await zooPass.buyZooPass(owner.address, { value: price })
+            await zooPass.buyZooPass(otherAccount.address, { value: price })
+
+            const zooPassBalance = await ethers.provider.getBalance(await zooPass.getAddress())
+
+            await expect(zooPass.withdraw(otherAccount.address)).changeEtherBalances(
+                [zooPass, otherAccount],
+                [-zooPassBalance, zooPassBalance]
+            )
+        })
+    })
 })

@@ -89,8 +89,8 @@ contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable, Reentra
 
     /**
      * @notice Mint an animal to the caller of the function
-     * @dev We should use a Chainlink VRF Random generator for the gender
      * @param _raceId Slug of the race we want to mint
+     * @custom:security We should use a Chainlink VRF Random generator for the gender. Gender manipulation has low impact
      */
     function safeMintAnimal(string memory _raceId) public nonReentrant {
         Race memory race = getRaceById(_raceId);
@@ -102,7 +102,7 @@ contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable, Reentra
 
         uint256 tokenId = _nextTokenId++;
 
-        Gender animalGender = uint(keccak256(abi.encodePacked(_raceId, block.timestamp, block.number, tokenId))) % 2 == 0 ? Gender.MALE : Gender.FEMALE;
+        Gender animalGender = uint(keccak256(abi.encodePacked(_raceId, block.timestamp, block.number, tokenId, _nextTokenId))) % 2 == 0 ? Gender.MALE : Gender.FEMALE;
         _safeMint(msg.sender, tokenId);
         animalForTokenId[tokenId] = Animal({tokenId: tokenId, race: race, childCount: 0, gender: animalGender});
         emit AnimalCreated(animalForTokenId[tokenId], tokenId);
@@ -114,7 +114,9 @@ contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable, Reentra
      * @return race the "race" matching the race id, otherwise an empty race
      */
     function getRaceById(string memory _raceId) public view returns (Race memory race) {
-        for (uint i = 0; i < races.length; i++) {
+        uint raceLength = races.length;
+
+        for (uint i = 0; i < raceLength; i++) {
             if (Strings.equal(races[i].id, _raceId)) {
                 return races[i];
             }
@@ -143,7 +145,7 @@ contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable, Reentra
      * @notice Create a baby from two animals
      * @param tokenIdA Token id of the first parent
      * @param tokenIdB Token id of the second parent
-     * @custom:improvement Needs 200 "game tokens" to breed
+     * @custom:improvements Needs 200 "game tokens" to breed
      */
     function breedAnimals(uint tokenIdA, uint tokenIdB) external {
         require(msg.sender == ownerOf(tokenIdA), "Not your NFT");
@@ -172,6 +174,7 @@ contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable, Reentra
     /**
      * @notice Get the animal races available in the game
      * @return Array containing the races
+     * @custom:improvements Should implement a pagination with params "uint fromIndex, uint count" to preven DoS Gas Limit
      */
     function getRaces() external view returns (Race[] memory) {
         return races;

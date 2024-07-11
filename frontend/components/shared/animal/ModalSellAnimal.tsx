@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
     Dialog,
     DialogContent,
@@ -10,7 +10,7 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { useReadContract, useWriteContract } from 'wagmi'
+import { useReadContract, useTransactionReceipt, useWriteContract } from 'wagmi'
 import Image from 'next/image'
 import { convertIpfsToHttps } from '@/lib/strings'
 import { parseEther } from 'viem'
@@ -34,13 +34,9 @@ export default function ModalSellAnimal(props: Props) {
         args: [props.tokenId],
     })
 
-    const { writeContract: approveNft, isPending: isPendingApprove } = useWriteContract({
-        mutation: {
-            onSuccess: () => {
-                refetchTokenApproval()
-            },
-        },
-    })
+    const { data: hashApproveNft, writeContract: approveNft } = useWriteContract()
+
+    const { isLoading: isPendingApprove, isSuccess } = useTransactionReceipt({ hash: hashApproveNft })
 
     const { writeContract, isPending } = useWriteContract({
         mutation: {
@@ -55,6 +51,12 @@ export default function ModalSellAnimal(props: Props) {
     })
 
     const [amount, setAmount] = useState('')
+
+    useEffect(() => {
+        if (isSuccess) {
+            refetchTokenApproval()
+        }
+    }, [isSuccess, refetchTokenApproval])
 
     const isNftApprovedForMarketplace = approvedAddress === process.env.NEXT_PUBLIC_MARKETPLACE_ADDRESS
 

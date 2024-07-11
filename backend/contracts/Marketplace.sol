@@ -105,8 +105,9 @@ contract Marketplace is IERC721Receiver, ReentrancyGuard {
      */
     function removeBid(Bid memory _bid) internal {
         bool hasDeletedBid;
+        uint bidLength = bids.length;
 
-        for (uint i = 0; i < bids.length; i++) {
+        for (uint i = 0; i < bidLength; i++) {
             if (hasDeletedBid) {
                 bids[i-1] = bids[i];
             }
@@ -125,6 +126,7 @@ contract Marketplace is IERC721Receiver, ReentrancyGuard {
     /**
      * @notice Get the lost of marketplace offers
      * @return Offer list available on the marketplace
+     * @custom:improvements Should implement a pagination with params "uint fromIndex, uint count" to prevent DoS Gas Limit
      */
     function getBids() external view returns (Bid[] memory) {
         return bids;
@@ -136,7 +138,9 @@ contract Marketplace is IERC721Receiver, ReentrancyGuard {
      * @return bid the marketplace offer
      */
     function getBidForAnimalId(uint _animalId) public view returns (Bid memory bid) {
-        for (uint i = 0; i < bids.length; i++) {
+        uint bidsLength = bids.length;
+
+        for (uint i = 0; i < bidsLength; i++) {
             if (bids[i].animalId == _animalId) {
                 return bids[i];
             }
