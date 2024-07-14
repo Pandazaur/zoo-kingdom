@@ -68,7 +68,7 @@ contract Marketplace is IERC721Receiver, ReentrancyGuard {
      * @notice Remove an animal from the Marketplace,
      * @param _animalId Token of the animal to remove from sale.
      */
-    function removeFromSale(uint _animalId) external nonReentrant bidMustExistsForAnimalId(_animalId) {
+    function removeFromSale(uint _animalId) external bidMustExistsForAnimalId(_animalId) {
         require(getBidForAnimalId(_animalId).owner == msg.sender, "Not the owner of the bid");
 
         Bid memory bid = getBidForAnimalId(_animalId);
@@ -131,6 +131,17 @@ contract Marketplace is IERC721Receiver, ReentrancyGuard {
     function getBids() external view returns (Bid[] memory) {
         return bids;
     }
+
+    // Version améliorée à implémenter:
+    // function getBids(uint fromIndex, uint count) external view returns (Bid[] memory) {
+    //     Bid[] memory bidsPage = new Bid[](count);
+    //     Bid[] memory memoryBids = bids;
+
+    //     for (uint i = fromIndex; i < fromIndex + count; i++){
+    //         bidsPage[i - fromIndex] = memoryBids[i];
+    //     } 
+    //     return bids;
+    // }
 
     /**
      * @notice Get an offer corresponding to an animal id.

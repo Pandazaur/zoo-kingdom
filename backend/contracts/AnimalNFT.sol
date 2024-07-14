@@ -7,7 +7,6 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 
 error RaceAlreadyExisting(string race);
@@ -21,7 +20,7 @@ error MaxChildrenReached(uint animalTokenId);
  * @dev ERC721Enumerable: to show collected NFT by account
  *      ERC721Burnable: to allow burning some animals (no animal injured)
  */
-contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable, ReentrancyGuard {
+contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable {
     /**
      * @notice Animal gender determined "randomly" when minting
      */
@@ -92,7 +91,7 @@ contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable, Reentra
      * @param _raceId Slug of the race we want to mint
      * @custom:security We should use a Chainlink VRF Random generator for the gender. Gender manipulation has low impact
      */
-    function safeMintAnimal(string memory _raceId) public nonReentrant {
+    function safeMintAnimal(string memory _raceId) public {
         Race memory race = getRaceById(_raceId);
         require(!Strings.equal(getRaceById(_raceId).id, ""), "Undefined race");
 
@@ -103,8 +102,8 @@ contract AnimalNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable, Reentra
         uint256 tokenId = _nextTokenId++;
 
         Gender animalGender = uint(keccak256(abi.encodePacked(_raceId, block.timestamp, block.number, tokenId, _nextTokenId))) % 2 == 0 ? Gender.MALE : Gender.FEMALE;
-        _safeMint(msg.sender, tokenId);
         animalForTokenId[tokenId] = Animal({tokenId: tokenId, race: race, childCount: 0, gender: animalGender});
+        _safeMint(msg.sender, tokenId);
         emit AnimalCreated(animalForTokenId[tokenId], tokenId);
     }
 

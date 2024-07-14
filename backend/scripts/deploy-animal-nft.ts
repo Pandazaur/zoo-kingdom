@@ -13,15 +13,28 @@ async function main() {
 
     const zooPass = await hre.ethers.deployContract('ZooPass')
     await zooPass.waitForDeployment()
+    await hre.run('verify:verify', {
+        address: await zooPass.getAddress(),
+        constructorArguments: []
+    })
     console.log(`[ZooPass]: ${await zooPass.getAddress()}`)
 
     const animalContract = await hre.ethers.deployContract('AnimalNFT', [await zooPass.getAddress()])
     await animalContract.waitForDeployment()
+    await hre.run('verify:verify', {
+        address: await animalContract.getAddress(),
+        constructorArguments: [await zooPass.getAddress()]
+    })
 
     console.log(`[AnimalNFT]: ${await animalContract.getAddress()}`)
     const marketplaceContract = await hre.ethers.deployContract('Marketplace', [await animalContract.getAddress()])
-
     console.log(`[Marketplace]: ${await marketplaceContract.getAddress()}`)
+    await hre.run('verify:verify', {
+        address: await marketplaceContract.getAddress(),
+        constructorArguments: [await animalContract.getAddress()]
+    })
+
+    await marketplaceContract.waitForDeployment()
     const pinata = new PinataSDK(process.env.PINATA_API_KEY, process.env.PINATA_API_SECRET)
 
     console.log('-----------')
@@ -69,7 +82,7 @@ async function main() {
             race.isPremium ?? false
         )
 
-        if (!race.isPremium) {
+        if (hre.network.name === 'localhost' && !race.isPremium) {
             for await (const account of otherAccounts) {
                 await animalContract.connect(account).safeMintAnimal(race.id)
                 const tokenId = await animalContract.connect(account).getLastTokenId()
