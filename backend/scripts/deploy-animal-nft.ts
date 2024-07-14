@@ -3,7 +3,8 @@ import * as fs from 'fs'
 import RACES from '../metadata/races'
 import PinataSDK from '@pinata/sdk'
 import dotenv from 'dotenv'
-import { parseEther } from 'ethers'
+import { BaseContract, Contract, parseEther } from 'ethers'
+import { AnimalNFT, Marketplace, ZooPass } from '../typechain-types'
 
 dotenv.config()
 
@@ -11,30 +12,10 @@ async function main() {
     const [owner, ...otherSigners] = await hre.ethers.getSigners()
     const otherAccounts = otherSigners.slice(0, 5)
 
-    const zooPass = await hre.ethers.deployContract('ZooPass')
-    await zooPass.waitForDeployment()
-    await hre.run('verify:verify', {
-        address: await zooPass.getAddress(),
-        constructorArguments: []
-    })
-    console.log(`[ZooPass]: ${await zooPass.getAddress()}`)
+    const zooPass = await deployAndVerify<ZooPass>('ZooPass')
+    const animalContract = await deployAndVerify<AnimalNFT>('AnimalNFT', [await zooPass.getAddress()])
+    const marketplaceContract = await deployAndVerify<Marketplace>('Marketplace', [await animalContract.getAddress()])
 
-    const animalContract = await hre.ethers.deployContract('AnimalNFT', [await zooPass.getAddress()])
-    await animalContract.waitForDeployment()
-    await hre.run('verify:verify', {
-        address: await animalContract.getAddress(),
-        constructorArguments: [await zooPass.getAddress()]
-    })
-
-    console.log(`[AnimalNFT]: ${await animalContract.getAddress()}`)
-    const marketplaceContract = await hre.ethers.deployContract('Marketplace', [await animalContract.getAddress()])
-    console.log(`[Marketplace]: ${await marketplaceContract.getAddress()}`)
-    await hre.run('verify:verify', {
-        address: await marketplaceContract.getAddress(),
-        constructorArguments: [await animalContract.getAddress()]
-    })
-
-    await marketplaceContract.waitForDeployment()
     const pinata = new PinataSDK(process.env.PINATA_API_KEY, process.env.PINATA_API_SECRET)
 
     console.log('-----------')
@@ -94,6 +75,21 @@ async function main() {
             }
         }
     }
+}
+
+async function deployAndVerify<T>(contractName: string, contractArgs: unknown[] = []): Promise<T> {
+    const contract = await hre.ethers.deployContract(contractName, contractArgs)
+    console.log(`[${contractName}]: ${await contract.getAddress()}`)
+    await contract.waitForDeployment()
+
+    if (hre.network.name !== 'localhost') {
+        await hre.run('verify:verify', {
+            address: await contract.getAddress(),
+            constructorArguments: contractArgs
+        })
+    }
+
+    return contract as T
 }
 
 main().catch((error) => {
