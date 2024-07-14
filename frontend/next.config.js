@@ -10,6 +10,16 @@ const nextConfig = {
             },
         ],
     },
+    async redirects() {
+        return [
+            // Basic redirect
+            {
+                source: '/',
+                destination: '/app/animals',
+                permanent: true,
+            },
+        ]
+    },
 }
 
 module.exports = nextConfig
